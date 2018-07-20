@@ -2,21 +2,20 @@
 
 [![Java 10+](https://img.shields.io/badge/java-10%2B-blue.svg)](http://java.oracle.com)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/vovkss/onesky-java/master/LICENSE.md)
+[![Build Status](https://travis-ci.org/vovkss/onesky-java.png?branch=master)](https://travis-ci.org/vovkss/onesky-java)
 
 Java wrapper for [OneSky](http://oneskyapp.com/) API.
 
-For the list of API wrappers in other programming languages, see the [OneSky Platform API project](https://github.com/onesky/api-documentation-platform/blob/master/README.md).
+For the list of API wrappers in other programming languages, see the [OneSky Platform API documentation](https://github.com/onesky/api-documentation-platform/blob/master/README.md).
 
 
 ## Dependency Information
-
-* Apache Maven: 
 
 The library is available in Maven Central Repository, the coordinates are: 
 
     info.datamuse:onesky-java:1.0.0
 
-For example, an Apache Maven dependency would be:
+For example, Apache Maven dependency would be:
     
     <dependency>
       <groupId>info.datamuse</groupId>
@@ -26,6 +25,10 @@ For example, an Apache Maven dependency would be:
 
 
 ## How to use
+
+**Create a client instance:**
+
+    var oneSkyClient = new OneSkyClient("<api-key>", "<api-secret>");
 
 TODO: describe
 
