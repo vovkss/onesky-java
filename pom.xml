@@ -1,0 +1,331 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <!-- Identification -->
+  <groupId>info.datamuse</groupId>
+  <artifactId>onesky-java</artifactId>
+  <version>1.0.0-SNAPSHOT</version>
+
+  <!-- Metainfo -->
+  <name>OneSky Java API Library</name>
+  <description>
+    Java wrapper for OneSky API.
+  </description>
+
+  <organization>
+    <name>Datamuse</name>
+    <url>https://www.datamuse.info</url>
+  </organization>
+
+  <!-- Environment -->
+  <scm>
+    <connection>scm:git:git@github.com:vovkss/onesky-java.git</connection>
+    <developerConnection>scm:git:git@github.com:vovkss/onesky-java.git</developerConnection>
+    <url>https://github.com/vovkss/onesky-java</url>
+  </scm>
+
+  <issueManagement>
+    <system>GitHub Issues</system>
+    <url>https://github.com/vovkss/onesky-java/issues</url>
+  </issueManagement>
+
+  <ciManagement>
+    <system>travis</system>
+    <url>https://travis-ci.org/vovkss/onesky-java/</url>
+  </ciManagement>
+
+  <!-- Properties -->
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+    <!-- Java/Maven versions -->
+    <maven.version>3.5.4</maven.version>
+    <java.version>10</java.version>
+
+    <!-- Dependencies versions -->
+    <jsr305.version>3.0.2</jsr305.version>
+    <slf4j.version>1.7.25</slf4j.version>
+
+    <!-- QA-related dependencies versions -->
+    <junit.jupiter.version>5.2.0</junit.jupiter.version>
+    <hamcrest.version>2.0.0.0</hamcrest.version>
+    <checkstyle.version>8.10.1</checkstyle.version>
+    <pmd.version>6.3.0</pmd.version>
+    <spotbugs.version>3.1.5</spotbugs.version>
+
+    <!-- Plugins versions -->
+    <maven.cleanPlugin.version>3.1.0</maven.cleanPlugin.version>
+    <maven.enforcerPlugin.version>3.0.0-M1</maven.enforcerPlugin.version>
+    <maven.resourcesPlugin.version>3.1.0</maven.resourcesPlugin.version>
+    <maven.compilerPlugin.version>3.7.0</maven.compilerPlugin.version>
+    <maven.surefirePlugin.version>2.22.0</maven.surefirePlugin.version>
+    <maven.jarPlugin.version>3.1.0</maven.jarPlugin.version>
+    <maven.checkstylePlugin.version>3.0.0</maven.checkstylePlugin.version>
+    <maven.pmdPlugin.version>3.10.0</maven.pmdPlugin.version>
+    <maven.spotbugsPlugin.version>${spotbugs.version}</maven.spotbugsPlugin.version>
+    <maven.sitePlugin.version>3.7.1</maven.sitePlugin.version>
+    <maven.installPlugin.version>2.5.2</maven.installPlugin.version>
+    <maven.deployPlugin.version>2.8.2</maven.deployPlugin.version>
+  </properties>
+
+  <!-- Dependencies -->
+  <dependencies>
+    <dependency>
+      <groupId>com.google.code.findbugs</groupId>
+      <artifactId>jsr305</artifactId>
+      <version>${jsr305.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>${slf4j.version}</version>
+    </dependency>
+
+    <!-- Test scope -->
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <version>${junit.jupiter.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-engine</artifactId>
+      <version>${junit.jupiter.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>java-hamcrest</artifactId>
+      <version>${hamcrest.version}</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <!-- Build -->
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-clean-plugin</artifactId>
+        <version>${maven.cleanPlugin.version}</version>
+      </plugin>
+      <plugin>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <version>${maven.enforcerPlugin.version}</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <requireMavenVersion>
+                  <version>${maven.version}</version>
+                </requireMavenVersion>
+                <requireJavaVersion>
+                  <version>${java.version}</version>
+                </requireJavaVersion>
+                <requirePluginVersions/>
+                <requireReleaseDeps/>
+                <dependencyConvergence/>
+                <requireUpperBoundDeps/>
+                <banDistributionManagement/>
+                <banDuplicatePomDependencyVersions/>
+              </rules>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>${maven.resourcesPlugin.version}</version>
+        <configuration>
+          <encoding>${project.build.sourceEncoding}</encoding>
+        </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>${maven.compilerPlugin.version}</version>
+        <configuration>
+          <encoding>${project.build.sourceEncoding}</encoding>
+          <release>${java.version}</release>
+          <source>${java.version}</source>
+          <target>${java.version}</target>
+          <debug>false</debug>
+          <optimize>true</optimize>
+          <showWarnings>true</showWarnings>
+          <showDeprecation>true</showDeprecation>
+          <compilerArgs>
+            <arg>-Xlint:all</arg>
+            <arg>-Werror</arg>
+          </compilerArgs>
+        </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>${maven.surefirePlugin.version}</version>
+        <configuration>
+          <includes>
+            <include>**/*Test.java</include>
+          </includes>
+          <runOrder>random</runOrder>
+        </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>${maven.jarPlugin.version}</version>
+      </plugin>
+
+
+        <plugin>
+          <artifactId>maven-checkstyle-plugin</artifactId>
+          <version>${maven.checkstylePlugin.version}</version>
+          <configuration>
+            <failsOnError>true</failsOnError>
+            <violationSeverity>info</violationSeverity>
+            <skip>${build.skipQa}</skip>
+          </configuration>
+          <executions>
+            <execution>
+              <id>checkstyle-general</id>
+              <goals>
+                <goal>check</goal>
+              </goals>
+              <configuration>
+                <configLocation>checkstyle.xml</configLocation>
+                <includeResources>true</includeResources>
+                <includeTestResources>true</includeTestResources>
+                <includeTestSourceDirectory>true</includeTestSourceDirectory>
+              </configuration>
+            </execution>
+            <execution>
+              <id>checkstyle-javadoc</id>
+              <goals>
+                <goal>check</goal>
+              </goals>
+              <configuration>
+                <configLocation>checkstyle-javadoc.xml</configLocation>
+                <includeResources>false</includeResources>
+                <includeTestResources>false</includeTestResources>
+                <includeTestSourceDirectory>false</includeTestSourceDirectory>
+              </configuration>
+            </execution>
+          </executions>
+          <dependencies>
+            <dependency>
+              <groupId>com.puppycrawl.tools</groupId>
+              <artifactId>checkstyle</artifactId>
+              <version>${checkstyle.version}</version>
+            </dependency>
+          </dependencies>
+        </plugin>
+        <plugin>
+          <artifactId>maven-pmd-plugin</artifactId>
+          <version>${maven.pmdPlugin.version}</version>
+          <configuration>
+            <rulesets>
+              <ruleset>pmd.xml</ruleset>
+            </rulesets>
+            <includeTests>true</includeTests>
+            <failOnViolation>true</failOnViolation>
+            <minimumPriority>5</minimumPriority>
+            <failurePriority>5</failurePriority>
+            <skipPmdError>false</skipPmdError>
+            <linkXRef>false</linkXRef>
+            <analysisCache>true</analysisCache>
+            <skip>${build.skipQa}</skip>
+          </configuration>
+          <executions>
+            <execution>
+              <id>pmd</id>
+              <goals>
+                <goal>pmd</goal>
+              </goals>
+            </execution>
+            <execution>
+              <id>cpd</id>
+              <goals>
+                <goal>cpd</goal>
+              </goals>
+              <configuration>
+                <includeTests>false</includeTests>
+              </configuration>
+            </execution>
+            <execution>
+              <id>pmd-cpd-check</id>
+              <goals>
+                <goal>check</goal>
+                <goal>cpd-check</goal>
+              </goals>
+            </execution>
+          </executions>
+          <dependencies>
+            <dependency>
+              <groupId>net.sourceforge.pmd</groupId>
+              <artifactId>pmd-core</artifactId>
+              <version>${pmd.version}</version>
+            </dependency>
+            <dependency>
+              <groupId>net.sourceforge.pmd</groupId>
+              <artifactId>pmd-java</artifactId>
+              <version>${pmd.version}</version>
+            </dependency>
+          </dependencies>
+        </plugin>
+        <plugin>
+          <groupId>com.github.spotbugs</groupId>
+          <artifactId>spotbugs-maven-plugin</artifactId>
+          <version>${maven.spotbugsPlugin.version}</version>
+          <configuration>
+            <excludeFilterFile>spotbugs-excludeFilter.xml</excludeFilterFile>
+            <effort>Max</effort>
+            <threshold>Low</threshold>
+            <failOnError>true</failOnError>
+            <includeTests>false</includeTests><!-- Some tests deliberately violate contracts to check validations, so it isn't practical to run Spotbugs on test code -->
+            <xmlOutput>true</xmlOutput>
+            <skip>${build.skipQa}</skip>
+          </configuration>
+          <executions>
+            <execution>
+              <goals>
+                <goal>check</goal>
+              </goals>
+            </execution>
+          </executions>
+          <dependencies>
+            <dependency>
+              <groupId>com.github.spotbugs</groupId>
+              <artifactId>spotbugs</artifactId>
+              <version>${spotbugs.version}</version>
+            </dependency>
+          </dependencies>
+        </plugin>
+        <plugin>
+          <artifactId>maven-site-plugin</artifactId>
+          <version>${maven.sitePlugin.version}</version>
+        </plugin>
+        <plugin>
+          <artifactId>maven-install-plugin</artifactId>
+          <version>${maven.installPlugin.version}</version>
+          <configuration>
+            <installAtEnd>false</installAtEnd>
+            <updateReleaseInfo>false</updateReleaseInfo>
+          </configuration>
+        </plugin>
+        <plugin>
+          <artifactId>maven-deploy-plugin</artifactId>
+          <version>${maven.deployPlugin.version}</version>
+          <configuration>
+            <deployAtEnd>true</deployAtEnd>
+            <updateReleaseInfo>false</updateReleaseInfo>
+          </configuration>
+        </plugin>
+
+        
+        
+    </plugins>
+  </build>
+
+</project>
