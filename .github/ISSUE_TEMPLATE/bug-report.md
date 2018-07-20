@@ -9,9 +9,9 @@ A clear and concise description of what the bug is.
 
 **To Reproduce**
 Steps to reproduce the behavior, e.g.:
-1. Having the following code/configuration: '...'
-2. Expected result: <a clear and concise description of what you expected to happen>
-3. Actual result: <description of the actual, problematic result — wrong data, exception, etc.>
+1. Having the following code/configuration: _... piece of code / configuration_
+2. Expected result: _... a clear and concise description of what you expected to happen_
+3. Actual result: _... description of the actual result — wrong behavior, exception, etc._
 
 **Environment (please complete the following information):**
  - Library version: [e.g. 1.0.0]
