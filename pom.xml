@@ -47,6 +47,7 @@
     <!-- Dependencies versions -->
     <jsr305.version>3.0.2</jsr305.version>
     <slf4j.version>1.7.25</slf4j.version>
+    <orgJson.version>20180130</orgJson.version>
 
     <!-- QA-related dependencies versions -->
     <junit.jupiter.version>5.2.0</junit.jupiter.version>
@@ -81,6 +82,11 @@
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
       <version>${slf4j.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.json</groupId>
+      <artifactId>json</artifactId>
+      <version>${orgJson.version}</version>
     </dependency>
 
     <!-- Test scope -->
@@ -293,18 +299,10 @@
       <plugin>
         <artifactId>maven-install-plugin</artifactId>
         <version>${maven.installPlugin.version}</version>
-        <configuration>
-          <installAtEnd>false</installAtEnd>
-          <updateReleaseInfo>false</updateReleaseInfo>
-        </configuration>
       </plugin>
       <plugin>
         <artifactId>maven-deploy-plugin</artifactId>
         <version>${maven.deployPlugin.version}</version>
-        <configuration>
-          <deployAtEnd>true</deployAtEnd>
-          <updateReleaseInfo>false</updateReleaseInfo>
-        </configuration>
       </plugin>
     </plugins>
   </build>

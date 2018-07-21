@@ -21,4 +21,13 @@ public final class OneSkyClient {
         this.apiSecret = apiSecret;
     }
 
+    /**
+     * Returns Locales API wrapper.
+     *
+     * @return Locales API wrapper
+     */
+    public OneSkyLocalesApi locales() {
+        return new OneSkyLocalesApi(apiKey, apiSecret);
+    }
+
 }
