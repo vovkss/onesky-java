@@ -42,7 +42,7 @@
 
     <!-- Java/Maven versions -->
     <maven.version>3.5.4</maven.version>
-    <java.version>10</java.version>
+    <java.version>11</java.version>
 
     <!-- Dependencies versions -->
     <jsr305.version>3.0.2</jsr305.version>
@@ -55,6 +55,7 @@
     <checkstyle.version>8.10.1</checkstyle.version>
     <pmd.version>6.3.0</pmd.version>
     <spotbugs.version>3.1.5</spotbugs.version>
+    <commonsCodec.version>1.11</commonsCodec.version>
 
     <!-- Plugins versions -->
     <maven.cleanPlugin.version>3.1.0</maven.cleanPlugin.version>
@@ -87,6 +88,11 @@
       <groupId>org.json</groupId>
       <artifactId>json</artifactId>
       <version>${orgJson.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-codec</groupId>
+      <artifactId>commons-codec</artifactId>
+      <version>${commonsCodec.version}</version>
     </dependency>
 
     <!-- Test scope -->

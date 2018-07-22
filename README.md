@@ -1,6 +1,6 @@
 # OneSky Java API Library
 
-[![Java 10+](https://img.shields.io/badge/java-10%2B-blue.svg)](http://java.oracle.com)
+[![Java 11+](https://img.shields.io/badge/java-11%2B-blue.svg)](http://java.oracle.com)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/vovkss/onesky-java/master/LICENSE.md)
 [![Build Status](https://travis-ci.org/vovkss/onesky-java.png?branch=master)](https://travis-ci.org/vovkss/onesky-java)
 
