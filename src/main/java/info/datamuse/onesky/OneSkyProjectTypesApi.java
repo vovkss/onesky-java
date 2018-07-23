@@ -86,9 +86,9 @@ public final class OneSkyProjectTypesApi extends AbstractOneSkyApi {
     }
 
     /**
-     * Returns a {@link CompletableFuture promise} for the list of available project type.
+     * Returns a {@link CompletableFuture promise} for the list of available project types.
      *
-     * @return list of project type (promise)
+     * @return list of project types (promise)
      */
     public CompletableFuture<List<ProjectType>> list() {
         return apiGetListOfObjectsRequest(

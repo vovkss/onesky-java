@@ -53,11 +53,11 @@
     <!-- QA-related dependencies versions -->
     <junit.jupiter.version>5.2.0</junit.jupiter.version>
     <hamcrest.version>2.0.0.0</hamcrest.version>
-    <guava.version>24.1-jre</guava.version>
+    <guava.version>25.1-jre</guava.version>
     <logback.version>1.2.3</logback.version>
 
     <checkstyle.version>8.10.1</checkstyle.version>
-    <pmd.version>6.3.0</pmd.version>
+    <pmd.version>6.4.0</pmd.version>
     <spotbugs.version>3.1.5</spotbugs.version>
 
     <!-- Plugins versions -->
