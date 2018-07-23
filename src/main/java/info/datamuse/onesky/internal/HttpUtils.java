@@ -10,6 +10,11 @@ public final class HttpUtils {
      */
     public static final long HTTP_STATUS_OK = 200;
 
+    /**
+     * {@code Content-Type} header name.
+     */
+    public static final String CONTENT_TYPE_HEADER = "Content-Type";
+
     private HttpUtils() {
         // Namespace
     }

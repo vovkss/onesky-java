@@ -1,6 +1,8 @@
 package info.datamuse.onesky.internal;
 
+import info.datamuse.onesky.OneSkyApiException;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 
@@ -18,6 +20,7 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import static info.datamuse.onesky.internal.HttpUtils.CONTENT_TYPE_HEADER;
 import static info.datamuse.onesky.internal.HttpUtils.HTTP_STATUS_OK;
 import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.joining;
@@ -129,21 +132,12 @@ public abstract class AbstractOneSkyApi {
         final HttpRequest apiHttpRequest =
             HttpRequest.newBuilder(URI.create(apiUrlWithParameters))
                 .GET()
-                .header("Content-Type", "application/json")
+                .header(CONTENT_TYPE_HEADER, "application/json")
                 .build(); // TODO: cache this
         return
             httpClient
                 .sendAsync(apiHttpRequest, HttpResponse.BodyHandlers.ofString())
-                .thenApply(httpResponse -> {
-                    final JSONObject response = new JSONObject(httpResponse.body()); // TODO: handle JSON parsing problems
-                    final @Nullable JSONObject meta = response.getJSONObject("meta");
-                    // TODO: check that meta, data exist, check status, etc.
-                    final @Nullable Long status = meta.getLong("status");
-                    if (status != HTTP_STATUS_OK) {
-                        throw new RuntimeException(Long.toString(status)); // TODO: use proper exception
-                    }
-                    return response.get("data");
-                });
+                .thenApply(AbstractOneSkyApi::getResponseData);
     }
 
     private Map<String, String> generateAuthParameters() {
@@ -154,6 +148,29 @@ public abstract class AbstractOneSkyApi {
             "timestamp", timestamp,
             "dev_hash", devHash
         );
+    }
+
+    private static Object getResponseData(final HttpResponse<String> httpResponse) { // TODO: test this method and the methods below it
+        try {
+            final JSONObject responseJson = new JSONObject(httpResponse.body());
+            checkSuccessResponse(responseJson);
+            return responseJson.get("data");
+        } catch (final JSONException e) {
+            throw new OneSkyApiException(e);
+        }
+    }
+
+    private static void checkSuccessResponse(final JSONObject responseJson) {
+        final JSONObject metaJson = responseJson.getJSONObject("meta");
+        final long status = metaJson.getLong("status");
+        if (status != HTTP_STATUS_OK) {
+            final @Nullable String message = metaJson.has("message") ? metaJson.getString("message") : null;
+            throw new OneSkyApiException(String.format(
+                Locale.ROOT,
+                "API responded with status=%d, message=%s",
+                status, message
+            ));
+        }
     }
 
     private static IllegalArgumentException unexpectedResponseDataTypeException(final @Nullable Object data, final Class<?> expectedClass, final String apiUrl) {

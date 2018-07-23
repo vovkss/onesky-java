@@ -29,12 +29,84 @@ public final class OneSkyClient { // CHECKSTYLE:Factory
     }
 
     /**
+     * Returns Project Groups API wrapper.
+     *
+     * @return Project Groups API wrapper
+     */
+    public OneSkyProjectGroupsApi projectGroups() {
+        return new OneSkyProjectGroupsApi(apiKey, apiSecret, httpClient);
+    }
+
+    /**
+     * Returns Projects API wrapper.
+     *
+     * @return Projects API wrapper
+     */
+    public OneSkyProjectsApi projects() {
+        return new OneSkyProjectsApi(apiKey, apiSecret, httpClient);
+    }
+
+    /**
      * Returns Project Types API wrapper.
      *
      * @return Project Types API wrapper
      */
     public OneSkyProjectTypesApi projectTypes() {
         return new OneSkyProjectTypesApi(apiKey, apiSecret, httpClient);
+    }
+
+    /**
+     * Returns Files API wrapper.
+     *
+     * @return Files API wrapper
+     */
+    public OneSkyFilesApi files() {
+        return new OneSkyFilesApi(apiKey, apiSecret, httpClient);
+    }
+
+    /**
+     * Returns Translations API wrapper.
+     *
+     * @return Translations API wrapper
+     */
+    public OneSkyTranslationsApi translations() {
+        return new OneSkyTranslationsApi(apiKey, apiSecret, httpClient);
+    }
+
+    /**
+     * Returns Import Tasks API wrapper.
+     *
+     * @return Import Tasks API wrapper
+     */
+    public OneSkyImportTasksApi importTasks() {
+        return new OneSkyImportTasksApi(apiKey, apiSecret, httpClient);
+    }
+
+    /**
+     * Returns Screenshots API wrapper.
+     *
+     * @return Screenshots API wrapper
+     */
+    public OneSkyScreenshotsApi screenshots() {
+        return new OneSkyScreenshotsApi(apiKey, apiSecret, httpClient);
+    }
+
+    /**
+     * Returns Quotations API wrapper.
+     *
+     * @return Quotations API wrapper
+     */
+    public OneSkyQuotationsApi quotations() {
+        return new OneSkyQuotationsApi(apiKey, apiSecret, httpClient);
+    }
+
+    /**
+     * Returns Orders API wrapper.
+     *
+     * @return Orders API wrapper
+     */
+    public OneSkyOrdersApi orders() {
+        return new OneSkyOrdersApi(apiKey, apiSecret, httpClient);
     }
 
     /**
