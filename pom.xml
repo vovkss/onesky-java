@@ -303,6 +303,7 @@
           <skipPmdError>false</skipPmdError>
           <linkXRef>false</linkXRef>
           <analysisCache>true</analysisCache>
+          <skip>true</skip><!-- TODO: remove this once PMD supports Java 11 -->
         </configuration>
         <executions>
           <execution>
@@ -341,6 +342,7 @@
           <failOnError>true</failOnError>
           <includeTests>false</includeTests><!-- Some tests deliberately violate contracts to check validations, so it isn't practical to run Spotbugs on test code -->
           <xmlOutput>true</xmlOutput>
+          <skip>true</skip><!-- TODO: remove this once Spotbugs supports Java 11 -->
         </configuration>
         <executions>
           <execution>
