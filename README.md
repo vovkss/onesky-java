@@ -28,9 +28,45 @@ For example, Apache Maven dependency would be:
 
 **Create a client instance:**
 
-    var oneSkyClient = new OneSkyClient("<api-key>", "<api-secret>");
+    // Create the HttpClient and configure it as needed
+    var httpClient = HttpClient.newHttpClient();
+    
+    var oneSkyClient = new OneSkyClient(
+        "<api-key>", "<api-secret>", httpClient
+    );
 
-TODO: describe
+
+**Asynchronous vs synchronous usage:**
+
+Every API call returns a `CompletableFuture` which allows asynchronous API usage, e.g.:
+
+    oneSkyClient.locales().list().whenComplete(
+        (locales, throwable) -> {
+            if (locales != null) {
+                final String localesString = locales.stream().map(Locale::toString).collect(Collectors.joining(", "));
+                System.out.println("OneSky locales: " + localesString);
+            } else if (throwable != null) {
+                System.out.println("OneSky API call failed: " + throwable.getMessage());
+            }
+        }
+    );
+
+To use the API synchronously, just invoke `CompletableFuture.join()`, e.g.:
+
+    List<Locale> locales = oneSkyClient.locales().list().join();
+
+
+**Locales API example:**
+
+    List<Locale> oneSkyLocales = oneSkyClient.locales().list();
+
+
+**Project Types API example:**
+
+    List<OneSkyProjectTypesApi.ProjectType> projectTypes = getOneSkyClient().projectTypes().list().join();
+    projectTypes.forEach(projectType -> 
+        System.out.println(projectType.getCode() + ": " + projectType.getName())
+    );
 
 
 ## Authors and contributors

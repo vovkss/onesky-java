@@ -12,7 +12,7 @@ import java.util.concurrent.CompletableFuture;
  */
 public final class OneSkyLocalesApi extends AbstractOneSkyApi {
 
-    private static final String LOCALES_API_URL_TEMPLATE = API_BASE_URL + "/locales";
+    private static final String LOCALES_API_URL = API_BASE_URL + "/locales";
 
     OneSkyLocalesApi(final String apiKey, final String apiSecret, final HttpClient httpClient) {
         super(apiKey, apiSecret, httpClient);
@@ -25,7 +25,7 @@ public final class OneSkyLocalesApi extends AbstractOneSkyApi {
      */
     public CompletableFuture<List<Locale>> list() {
         return apiGetListOfObjectsRequest(
-            LOCALES_API_URL_TEMPLATE,
+            LOCALES_API_URL,
             dataItem -> Locale.forLanguageTag(dataItem.getString("code"))
         );
     }
