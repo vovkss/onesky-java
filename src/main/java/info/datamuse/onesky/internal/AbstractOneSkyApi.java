@@ -2,12 +2,10 @@ package info.datamuse.onesky.internal;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.slf4j.Logger;
 
 import javax.annotation.Nullable;
-import java.net.MalformedURLException;
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -20,10 +18,12 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import static info.datamuse.onesky.internal.HttpUtils.HTTP_STATUS_OK;
 import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toUnmodifiableList;
 import static org.apache.commons.codec.digest.DigestUtils.md5Hex;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Abstract base class for OneSky API Wrappers.
@@ -31,9 +31,11 @@ import static org.apache.commons.codec.digest.DigestUtils.md5Hex;
 public abstract class AbstractOneSkyApi {
 
     /**
-     * OneSky API base URL
+     * OneSky API base URL.
      */
     public static final String API_BASE_URL = "https://platform.api.onesky.io/1";
+
+    private static final Logger logger = getLogger(AbstractOneSkyApi.class);
 
     private final String apiKey;
     private final String apiSecret;
@@ -54,6 +56,14 @@ public abstract class AbstractOneSkyApi {
 
     // TODO: implement and self-review the below
 
+    /**
+     * Executes an API GET-request which is expected to return a list and returns a {@link CompletableFuture promise} for the result list.
+     *
+     * @param <T> target list item type
+     * @param apiUrl API URL excluding query parameters
+     * @param dataItemsConverter converter of the result-data-list-item-JSONs into target types.
+     * @return retrieved list (promise)
+     */
     protected final <T> CompletableFuture<List<T>> apiGetListOfObjectsRequest(
         final String apiUrl,
         final Function<JSONObject, T> dataItemsConverter
@@ -61,6 +71,15 @@ public abstract class AbstractOneSkyApi {
         return apiGetListOfObjectsRequest(apiUrl, emptyMap(), dataItemsConverter);
     }
 
+    /**
+     * Executes an API GET-request which is expected to return a list and returns a {@link CompletableFuture promise} for the result list.
+     *
+     * @param <T> target list item type
+     * @param apiUrl API URL excluding query parameters
+     * @param parameters URL query parameters excluding auth-parameters
+     * @param dataItemsConverter converter of the result-data-list-item-JSONs into target types.
+     * @return retrieved list (promise)
+     */
     protected final <T> CompletableFuture<List<T>> apiGetListOfObjectsRequest(
         final String apiUrl,
         final Map<String, String> parameters,
@@ -78,8 +97,7 @@ public abstract class AbstractOneSkyApi {
                                 throw new IllegalArgumentException(String.format(
                                     Locale.ROOT,
                                     "OneSky API response data was expected to be an array of objects, but an item of type `%s` was received. API URL: `%s`",
-                                    (data != null ? data.getClass().getSimpleName() : "null"),
-                                    apiUrl
+                                    getTypeName(data), apiUrl
                                 ));
                             }
                             return dataItemsConverter.apply((JSONObject) dataItem);
@@ -89,7 +107,16 @@ public abstract class AbstractOneSkyApi {
                 );
     }
 
+    /**
+     * Executes an API GET-request and returns a {@link CompletableFuture promise} for the result's {@code data} part.
+     *
+     * @param apiUrl API URL excluding query parameters
+     * @param parameters URL query parameters excluding auth-parameters
+     * @return retrieved data (promise)
+     */
     protected final CompletableFuture<?> apiGetRequest(final String apiUrl, final Map<String, String> parameters) {
+        logger.info("OneSky API call"); // TODO: include url with parameters, excluding auth data
+        // TODO: log from within the Future, when finished
         final String apiUrlWithParameters =
             apiUrl
             + '?'
@@ -112,7 +139,7 @@ public abstract class AbstractOneSkyApi {
                     final @Nullable JSONObject meta = response.getJSONObject("meta");
                     // TODO: check that meta, data exist, check status, etc.
                     final @Nullable Long status = meta.getLong("status");
-                    if (status != 200) {
+                    if (status != HTTP_STATUS_OK) {
                         throw new RuntimeException(Long.toString(status)); // TODO: use proper exception
                     }
                     return response.get("data");
@@ -133,10 +160,12 @@ public abstract class AbstractOneSkyApi {
         return new IllegalArgumentException(String.format(
             Locale.ROOT,
             "OneSky API response data was expected to be of type `%s`, but was of type `%s`. API URL: `%s`",
-            expectedClass.getSimpleName(),
-            (data != null ? data.getClass().getSimpleName() : "null"),
-            apiUrl
+            expectedClass.getSimpleName(), getTypeName(data), apiUrl
         ));
+    }
+
+    private static String getTypeName(final @Nullable Object obj) {
+        return obj != null ? obj.getClass().getSimpleName() : "null";
     }
 
 }

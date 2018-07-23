@@ -2,12 +2,14 @@ package info.datamuse.onesky;
 
 import java.net.http.HttpClient;
 
+import static java.util.Objects.requireNonNull;
+
 /**
  * <a href="http://oneskyapp.com/">OneSky</a> API client.
  *
  * @see <a href="https://github.com/onesky/api-documentation-platform/blob/master/README.md">OneSky Platform API documentation</a>
  */
-public final class OneSkyClient {
+public final class OneSkyClient { // CHECKSTYLE:Factory
 
     private final String apiKey;
     private final String apiSecret;
@@ -21,9 +23,18 @@ public final class OneSkyClient {
      * @param httpClient HTTP Client
      */
     public OneSkyClient(final String apiKey, final String apiSecret, final HttpClient httpClient) {
-        this.apiKey = apiKey;
-        this.apiSecret = apiSecret;
-        this.httpClient = httpClient;
+        this.apiKey = requireNonNull(apiKey);
+        this.apiSecret = requireNonNull(apiSecret);
+        this.httpClient = requireNonNull(httpClient);
+    }
+
+    /**
+     * Returns Project Types API wrapper.
+     *
+     * @return Project Types API wrapper
+     */
+    public OneSkyProjectTypesApi projectTypes() {
+        return new OneSkyProjectTypesApi(apiKey, apiSecret, httpClient);
     }
 
     /**
