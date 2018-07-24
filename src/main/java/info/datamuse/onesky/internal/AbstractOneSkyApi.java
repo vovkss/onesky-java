@@ -21,7 +21,11 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import static info.datamuse.onesky.internal.HttpUtils.CONTENT_TYPE_HEADER;
+import static info.datamuse.onesky.internal.HttpUtils.HTTP_GET;
+import static info.datamuse.onesky.internal.HttpUtils.HTTP_POST;
+import static info.datamuse.onesky.internal.HttpUtils.HTTP_STATUS_CREATED;
 import static info.datamuse.onesky.internal.HttpUtils.HTTP_STATUS_OK;
+import static java.net.http.HttpRequest.BodyPublishers.noBody;
 import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toUnmodifiableList;
@@ -64,14 +68,14 @@ public abstract class AbstractOneSkyApi {
      *
      * @param <T> target list item type
      * @param apiUrl API URL excluding query parameters
-     * @param dataItemsConverter converter of the result-data-list-item-JSONs into target types.
+     * @param dataItemConverter converter of the result-data-list-item-JSONs into target types.
      * @return retrieved list (promise)
      */
     protected final <T> CompletableFuture<List<T>> apiGetListOfObjectsRequest(
         final String apiUrl,
-        final Function<JSONObject, T> dataItemsConverter
+        final Function<JSONObject, T> dataItemConverter
     ) {
-        return apiGetListOfObjectsRequest(apiUrl, emptyMap(), dataItemsConverter);
+        return apiGetListOfObjectsRequest(apiUrl, emptyMap(), dataItemConverter);
     }
 
     /**
@@ -80,16 +84,16 @@ public abstract class AbstractOneSkyApi {
      * @param <T> target list item type
      * @param apiUrl API URL excluding query parameters
      * @param parameters URL query parameters excluding auth-parameters
-     * @param dataItemsConverter converter of the result-data-list-item-JSONs into target types.
+     * @param dataItemConverter converter of the result-data-list-item-JSONs into target types.
      * @return retrieved list (promise)
      */
     protected final <T> CompletableFuture<List<T>> apiGetListOfObjectsRequest(
         final String apiUrl,
         final Map<String, String> parameters,
-        final Function<JSONObject, T> dataItemsConverter
+        final Function<JSONObject, T> dataItemConverter
     ) {
         return
-            apiGetRequest(apiUrl, parameters)
+            apiDataRequest(HTTP_GET, noBody(), apiUrl, parameters, HTTP_STATUS_OK)
                 .thenApply(/* @Nullable */ data -> {
                     if (!(data instanceof JSONArray)) {
                         throw unexpectedResponseDataTypeException(data, JSONArray.class, apiUrl);
@@ -103,21 +107,43 @@ public abstract class AbstractOneSkyApi {
                                     getTypeName(data), apiUrl
                                 ));
                             }
-                            return dataItemsConverter.apply((JSONObject) dataItem);
+                            return dataItemConverter.apply((JSONObject) dataItem);
                         })
                         .collect(toUnmodifiableList());
                     }
                 );
     }
 
+    protected final <T> CompletableFuture<T> apiCreateRequest(
+        final String apiUrl,
+        final Map<String, String> parameters,
+        final Function<JSONObject, T> dataConverter
+    ) {
+        return
+            apiDataRequest(HTTP_POST, noBody(), apiUrl, parameters, HTTP_STATUS_CREATED)
+                .thenApply(/* @Nullable */ data -> {
+                        if (!(data instanceof JSONObject)) {
+                            throw unexpectedResponseDataTypeException(data, JSONObject.class, apiUrl);
+                        }
+                        return dataConverter.apply((JSONObject) data);
+                    }
+                );
+    }
+
     /**
-     * Executes an API GET-request and returns a {@link CompletableFuture promise} for the result's {@code data} part.
+     * Executes an API request and returns a {@link CompletableFuture promise} for the result's {@code data} part.
      *
      * @param apiUrl API URL excluding query parameters
      * @param parameters URL query parameters excluding auth-parameters
      * @return retrieved data (promise)
      */
-    protected final CompletableFuture<?> apiGetRequest(final String apiUrl, final Map<String, String> parameters) {
+    protected final CompletableFuture<?> apiDataRequest(
+        final String httpMethod,
+        final HttpRequest.BodyPublisher httpRequestBodyPublisher,
+        final String apiUrl,
+        final Map<String, String> parameters,
+        final long expectedStatus
+    ) {
         logger.info("OneSky API call"); // TODO: include url with parameters, excluding auth data
         // TODO: log from within the Future, when finished
         final String apiUrlWithParameters =
@@ -131,13 +157,13 @@ public abstract class AbstractOneSkyApi {
             ).collect(joining("&"));
         final HttpRequest apiHttpRequest =
             HttpRequest.newBuilder(URI.create(apiUrlWithParameters))
-                .GET()
+                .method(httpMethod, httpRequestBodyPublisher)
                 .header(CONTENT_TYPE_HEADER, "application/json")
                 .build(); // TODO: cache this
         return
             httpClient
                 .sendAsync(apiHttpRequest, HttpResponse.BodyHandlers.ofString())
-                .thenApply(AbstractOneSkyApi::getResponseData);
+                .thenApply(httpResponse -> getResponseData(httpResponse, expectedStatus));
     }
 
     private Map<String, String> generateAuthParameters() {
@@ -150,25 +176,25 @@ public abstract class AbstractOneSkyApi {
         );
     }
 
-    private static Object getResponseData(final HttpResponse<String> httpResponse) { // TODO: test this method and the methods below it
+    private static Object getResponseData(final HttpResponse<String> httpResponse, final long expectedStatus) { // TODO: test this method and the methods below it
         try {
             final JSONObject responseJson = new JSONObject(httpResponse.body());
-            checkSuccessResponse(responseJson);
+            checkSuccessResponse(responseJson, expectedStatus);
             return responseJson.get("data");
         } catch (final JSONException e) {
             throw new OneSkyApiException(e);
         }
     }
 
-    private static void checkSuccessResponse(final JSONObject responseJson) {
+    private static void checkSuccessResponse(final JSONObject responseJson, final long expectedStatus) {
         final JSONObject metaJson = responseJson.getJSONObject("meta");
         final long status = metaJson.getLong("status");
-        if (status != HTTP_STATUS_OK) {
+        if (status != expectedStatus) {
             final @Nullable String message = metaJson.has("message") ? metaJson.getString("message") : null;
             throw new OneSkyApiException(String.format(
                 Locale.ROOT,
-                "API responded with status=%d, message=%s",
-                status, message
+                "Expected status=%d, but API responded with status=%d, message=%s",
+                expectedStatus, status, message
             ));
         }
     }

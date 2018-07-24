@@ -14,6 +14,8 @@ public final class OneSkyLocalesApi extends AbstractOneSkyApi {
 
     private static final String LOCALES_API_URL = API_BASE_URL + "/locales";
 
+    static final String LOCALE_CODE_KEY = "code";
+
     OneSkyLocalesApi(final String apiKey, final String apiSecret, final HttpClient httpClient) {
         super(apiKey, apiSecret, httpClient);
     }
@@ -26,7 +28,7 @@ public final class OneSkyLocalesApi extends AbstractOneSkyApi {
     public CompletableFuture<List<Locale>> list() {
         return apiGetListOfObjectsRequest(
             LOCALES_API_URL,
-            dataItem -> Locale.forLanguageTag(dataItem.getString("code"))
+            dataItem -> Locale.forLanguageTag(dataItem.getString(LOCALE_CODE_KEY))
         );
     }
 

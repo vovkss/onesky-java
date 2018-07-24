@@ -56,17 +56,17 @@ To use the API synchronously, just invoke `CompletableFuture.join()`, e.g.:
     List<Locale> locales = oneSkyClient.locales().list().join();
 
 
-**Locales API example:**
-
-    List<Locale> oneSkyLocales = oneSkyClient.locales().list();
-
-
 **Project Types API example:**
 
-    List<OneSkyProjectTypesApi.ProjectType> projectTypes = getOneSkyClient().projectTypes().list().join();
+    List<OneSkyProjectTypesApi.ProjectType> projectTypes = oneSkyClient.projectTypes().list().join();
     projectTypes.forEach(projectType -> 
         System.out.println(projectType.getCode() + ": " + projectType.getName())
     );
+
+
+**Locales API example:**
+
+    List<Locale> oneSkyLocales = oneSkyClient.locales().list().join();
 
 
 ## Authors and contributors

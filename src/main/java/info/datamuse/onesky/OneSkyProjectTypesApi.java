@@ -81,6 +81,9 @@ public final class OneSkyProjectTypesApi extends AbstractOneSkyApi {
 
     private static final String PROJECT_TYPES_API_URL = API_BASE_URL + "/project-types";
 
+    static final String PROJECT_TYPE_CODE_KEY = "code";
+    static final String PROJECT_TYPE_NAME_KEY = "name";
+
     OneSkyProjectTypesApi(final String apiKey, final String apiSecret, final HttpClient httpClient) {
         super(apiKey, apiSecret, httpClient);
     }
@@ -94,8 +97,8 @@ public final class OneSkyProjectTypesApi extends AbstractOneSkyApi {
         return apiGetListOfObjectsRequest(
             PROJECT_TYPES_API_URL,
             dataItem -> new ProjectType(
-                dataItem.getString("code"),
-                dataItem.getString("name")
+                dataItem.getString(PROJECT_TYPE_CODE_KEY),
+                dataItem.getString(PROJECT_TYPE_NAME_KEY)
             )
         );
     }
