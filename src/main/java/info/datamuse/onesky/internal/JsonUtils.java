@@ -48,6 +48,7 @@ public final class JsonUtils {
      * @param json JSON object
      * @param key value key
      * @param jsonValueClass JSON value class
+     * @param valueConverter value converter
      * @return converted property value for the specified key if it exists, else {@code null}
      */
     public static @Nullable <T, R> R getOptionalJsonValue(final JSONObject json, final String key, final Class<T> jsonValueClass, final Function<T, R> valueConverter) {

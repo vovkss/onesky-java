@@ -1,24 +1,24 @@
 package info.datamuse.onesky;
 
 import info.datamuse.onesky.internal.AbstractOneSkyApi;
-import info.datamuse.onesky.internal.JsonUtils;
 import org.json.JSONObject;
 
 import javax.annotation.Nullable;
 import java.net.http.HttpClient;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 
+import static info.datamuse.onesky.OneSkyLocalesApi.LOCALE_CODE_KEY;
 import static info.datamuse.onesky.internal.JsonUtils.getOptionalJsonValue;
 import static info.datamuse.onesky.internal.ListUtils.optionalListRequireNonNullItems;
 import static java.util.Collections.emptyMap;
 import static java.util.Objects.requireNonNull;
+import static java.util.function.Function.identity;
 
 /**
  * OneSky Project Groups API wrapper.
@@ -124,6 +124,8 @@ public final class OneSkyProjectGroupsApi extends AbstractOneSkyApi {
     }
 
     private static final String PROJECT_GROUPS_API_URL = API_BASE_URL + "/project-groups";
+    private static final String PROJECT_GROUP_BY_ID_API_URL_TEMPLATE = PROJECT_GROUPS_API_URL + "/%d";
+    private static final String PROJECT_GROUP_ENABLED_LOCALES_BY_ID_API_URL_TEMPLATE = PROJECT_GROUP_BY_ID_API_URL_TEMPLATE + "/languages";
 
     private static final String PROJECT_GROUP_NAME_PARAM = "name";
     private static final String PROJECT_GROUP_BASE_LOCALE_PARAM = "locale";
@@ -168,13 +170,24 @@ public final class OneSkyProjectGroupsApi extends AbstractOneSkyApi {
         );
     }
 
-//    public CompletableFuture<ProjectGroup> retrieve() {
-//        return apiGetPaginatedListOfObjectsRequest(
-//            PROJECT_GROUPS_API_URL,
-//            emptyMap(),
-//            OneSkyProjectGroupsApi::jsonToProjectGroup
-//        );
-//    }
+    // TODO: javadoc - "Show" + "Languages"
+    public CompletableFuture<ProjectGroup> retrieve(final long projectGroupId) {
+        final CompletableFuture<JSONObject> projectGroupJsonPromise = apiGetObjectRequest(
+            String.format(Locale.ROOT, PROJECT_GROUP_BY_ID_API_URL_TEMPLATE, projectGroupId),
+            emptyMap(),
+            identity()
+        );
+        final CompletableFuture<List<Locale>> enabledLocalesPromise = apiGetListRequest(
+            String.format(Locale.ROOT, PROJECT_GROUP_ENABLED_LOCALES_BY_ID_API_URL_TEMPLATE, projectGroupId),
+            emptyMap(),
+            dataItem -> Locale.forLanguageTag(
+                dataItem.getString(LOCALE_CODE_KEY)
+            )
+        );
+        return projectGroupJsonPromise.thenCombine(enabledLocalesPromise, // TODO: handle the "id not found" case
+            (projectGroupJson, enabledLocales) -> toProjectGroup(projectGroupJson, enabledLocales)
+        );
+    }
 
     // TODO: implement Retrieve ("Show" + "Languages"), Delete
 
@@ -182,7 +195,7 @@ public final class OneSkyProjectGroupsApi extends AbstractOneSkyApi {
         return new ProjectGroup(
             projectGroupJson.getLong(PROJECT_GROUP_ID_KEY),
             projectGroupJson.getString(PROJECT_GROUP_NAME_KEY),
-            getOptionalJsonValue(projectGroupJson, PROJECT_GROUP_BASE_LOCALE_KEY, JSONObject.class, localeJson -> Locale.forLanguageTag(localeJson.getString(OneSkyLocalesApi.LOCALE_CODE_KEY))),
+            getOptionalJsonValue(projectGroupJson, PROJECT_GROUP_BASE_LOCALE_KEY, JSONObject.class, localeJson -> Locale.forLanguageTag(localeJson.getString(LOCALE_CODE_KEY))),
             enabledLocales,
             getOptionalJsonValue(projectGroupJson, PROJECT_GROUP_PROJECT_COUNT_KEY, Integer.class)
         );

@@ -14,7 +14,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Instant;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -66,6 +65,21 @@ public abstract class AbstractOneSkyApi {
     }
 
     // TODO: implement and self-review the below
+
+    protected final <T> CompletableFuture<T> apiGetObjectRequest(
+        final String apiUrl,
+        final Map<String, String> parameters,
+        final Function<JSONObject, T> dataConverter
+    ) {
+        return
+            apiDataRequest(HTTP_GET, noBody(), apiUrl, parameters, HTTP_STATUS_OK)
+                .thenApply(data -> {
+                    if (!(data instanceof JSONObject)) {
+                        throw unexpectedJsonTypeException("data", data, JSONObject.class);
+                    }
+                    return dataConverter.apply((JSONObject) data);
+                });
+    }
 
     /**
      * Executes an API GET-request which is expected to return a list and returns a {@link CompletableFuture promise} for the result list.
@@ -145,7 +159,7 @@ public abstract class AbstractOneSkyApi {
      * @param expectedStatus expected HTTP response status on success
      * @return retrieved data (promise)
      */
-    private CompletableFuture<?> apiDataRequest(
+    protected final CompletableFuture<?> apiDataRequest(
         final String httpMethod,
         final HttpRequest.BodyPublisher httpRequestBodyPublisher,
         final String apiUrl,
