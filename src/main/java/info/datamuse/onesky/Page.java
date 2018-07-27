@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 
-import static java.util.Objects.requireNonNull;
+import static info.datamuse.onesky.internal.ListUtils.listRequireNonNullItems;
 
 /**
  * Represents the result of a paginated list query.
@@ -35,7 +35,7 @@ public final class Page<T> {
         final long totalItemsCount,
         final long totalPagesCount
     ) {
-        this.pageItems = requireNonNull(pageItems);
+        this.pageItems = listRequireNonNullItems(pageItems);
         this.pageNumber = pageNumber;
         this.maxItemsPerPage = maxItemsPerPage;
         this.totalItemsCount = totalItemsCount;

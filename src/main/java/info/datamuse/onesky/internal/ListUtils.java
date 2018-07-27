@@ -4,6 +4,8 @@ import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Objects;
 
+import static java.util.Objects.requireNonNull;
+
 /**
  * {@link List} utilities.
  */
@@ -11,6 +13,17 @@ public final class ListUtils {
 
     private ListUtils() {
         // Namespace
+    }
+
+    /**
+     * Checks that the list and the list items are non-{@code null} and returns the {@code list}.
+     *
+     * @param <T> list item type
+     * @param list the list to check
+     * @return {@code list}
+     */
+    public static <T> List<T> listRequireNonNullItems(final List<T> list) {
+        return requireNonNull(optionalListRequireNonNullItems(list));
     }
 
     /**
