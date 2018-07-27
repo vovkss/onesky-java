@@ -4,14 +4,11 @@ import com.google.common.testing.EqualsTester;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasToString;
 import static org.hamcrest.Matchers.is;
 
@@ -20,26 +17,48 @@ public final class OneSkyProjectGroupsApiTest extends AbstractOneSkyApiTest {
     @Test
     public void testProjectGroupDataClass() {
         // Test Data Begin {{{
-        final var cologneProjectGroup = new OneSkyProjectGroupsApi.ProjectGroup(4711L, "Cologne", Locale.GERMAN);
+        final var cologneProjectGroup = new OneSkyProjectGroupsApi.ProjectGroup(
+            4711L,
+            "Cologne",
+            Locale.GERMAN,
+            List.of(Locale.CHINESE, Locale.SIMPLIFIED_CHINESE),
+            42
+        );
 
         assertThat(cologneProjectGroup.getId(), is(equalTo(4711L)));
         assertThat(cologneProjectGroup.getName(), is(equalTo("Cologne")));
         assertThat(cologneProjectGroup.getBaseLocale(), is(equalTo(Locale.GERMAN)));
+        assertThat(cologneProjectGroup.getEnabledLocales(), is(equalTo(List.of(Locale.CHINESE, Locale.SIMPLIFIED_CHINESE))));
+        assertThat(cologneProjectGroup.getProjectCount(), is(equalTo(42)));
 
         new EqualsTester()
             .addEqualityGroup(
                 cologneProjectGroup,
-                cologneProjectGroup,
-                new OneSkyProjectGroupsApi.ProjectGroup(1147L, "Cologne", Locale.GERMAN)
+                cologneProjectGroup
             )
             .addEqualityGroup(
-                new OneSkyProjectGroupsApi.ProjectGroup(4711L, "Koeln", Locale.GERMAN)
+                new OneSkyProjectGroupsApi.ProjectGroup(1147L, "Cologne", Locale.GERMAN, List.of(Locale.CHINESE, Locale.SIMPLIFIED_CHINESE), 42)
             )
             .addEqualityGroup(
-                new OneSkyProjectGroupsApi.ProjectGroup(4711L, "Cologne", null)
+                new OneSkyProjectGroupsApi.ProjectGroup(4711L, "Koeln", Locale.GERMAN, List.of(Locale.CHINESE, Locale.SIMPLIFIED_CHINESE), 42)
             )
             .addEqualityGroup(
-                new OneSkyProjectGroupsApi.ProjectGroup(4711L, "Cologne", Locale.FRENCH)
+                new OneSkyProjectGroupsApi.ProjectGroup(4711L, "Cologne", null, List.of(Locale.CHINESE, Locale.SIMPLIFIED_CHINESE), 42)
+            )
+            .addEqualityGroup(
+                new OneSkyProjectGroupsApi.ProjectGroup(4711L, "Cologne", Locale.FRENCH, List.of(Locale.CHINESE, Locale.SIMPLIFIED_CHINESE), 42)
+            )
+            .addEqualityGroup(
+                new OneSkyProjectGroupsApi.ProjectGroup(4711L, "Cologne", Locale.GERMAN, null, 42)
+            )
+            .addEqualityGroup(
+                new OneSkyProjectGroupsApi.ProjectGroup(4711L, "Cologne", Locale.GERMAN, List.of(Locale.SIMPLIFIED_CHINESE, Locale.CHINESE), 42)
+            )
+            .addEqualityGroup(
+                new OneSkyProjectGroupsApi.ProjectGroup(4711L, "Cologne", Locale.GERMAN, List.of(Locale.CHINESE, Locale.SIMPLIFIED_CHINESE), null)
+            )
+            .addEqualityGroup(
+                new OneSkyProjectGroupsApi.ProjectGroup(4711L, "Cologne", Locale.GERMAN, List.of(Locale.CHINESE, Locale.SIMPLIFIED_CHINESE), 24)
             )
             .testEquals();
 

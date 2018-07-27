@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 
+import static java.util.Collections.emptyMap;
 import static java.util.Objects.requireNonNull;
 
 /**
@@ -94,8 +95,9 @@ public final class OneSkyProjectTypesApi extends AbstractOneSkyApi {
      * @return list of project types (promise)
      */
     public CompletableFuture<List<ProjectType>> list() {
-        return apiGetListOfObjectsRequest(
+        return apiGetListRequest(
             PROJECT_TYPES_API_URL,
+            emptyMap(),
             dataItem -> new ProjectType(
                 dataItem.getString(PROJECT_TYPE_CODE_KEY),
                 dataItem.getString(PROJECT_TYPE_NAME_KEY)

@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 
+import static java.util.Collections.emptyMap;
+
 /**
  * OneSky Locales API wrapper.
  */
@@ -26,9 +28,12 @@ public final class OneSkyLocalesApi extends AbstractOneSkyApi {
      * @return list of all locales (promise)
      */
     public CompletableFuture<List<Locale>> list() {
-        return apiGetListOfObjectsRequest(
+        return apiGetListRequest(
             LOCALES_API_URL,
-            dataItem -> Locale.forLanguageTag(dataItem.getString(LOCALE_CODE_KEY))
+            emptyMap(),
+            dataItem -> Locale.forLanguageTag(
+                dataItem.getString(LOCALE_CODE_KEY)
+            )
         );
     }
 
