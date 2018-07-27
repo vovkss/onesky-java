@@ -28,9 +28,11 @@ public final class JsonUtils {
         if (json.has(key)) {
             final Object value = json.get(key);
             if (jsonValueClass.isInstance(value)) {
-                return (T) value;
+                @SuppressWarnings("unchecked")
+                final T theValue = (T) value;
+                return theValue;
             } else {
-                throw unexpectedJsonTypeException(key, json, jsonValueClass);
+                throw unexpectedJsonTypeException(key, value, jsonValueClass);
             }
         } else {
             return null;
@@ -62,14 +64,12 @@ public final class JsonUtils {
      * @return exception which represents an invalid JSON value type
      */
     public static IllegalArgumentException unexpectedJsonTypeException(final String name, final @Nullable Object json, final Class<?> expectedClass) {
+        final String actualType = json != null ? json.getClass().getSimpleName() : "null";
         return new IllegalArgumentException(String.format(
             Locale.ROOT,
             "`%s` was expected to be of type `%s`, but was of type `%s`",
-            name, expectedClass.getSimpleName(), getTypeName(json)
+            name, expectedClass.getSimpleName(), actualType
         ));
-    }
-    private static String getTypeName(final @Nullable Object obj) {
-        return obj != null ? obj.getClass().getSimpleName() : "null";
     }
 
 }

@@ -15,7 +15,7 @@ public final class PageTest {
     @Test
     public void testPageDataClass() {
         // Test Data Begin {{{
-        final var page = new Page(
+        final var page = new Page<>(
             List.of("magenta", "brown", "gray", "dark gray", "bright blue"),
             2L,
             5L,
@@ -35,19 +35,19 @@ public final class PageTest {
                 page
             )
             .addEqualityGroup(
-                new Page(List.of("magenta", "brown", "GREY", "dark gray", "bright blue"), 2L, 5L, 16L, 4L)
+                new Page<>(List.of("magenta", "brown", "GREY", "dark gray", "bright blue"), 2L, 5L, 16L, 4L)
             )
             .addEqualityGroup(
-                new Page(List.of("magenta", "brown", "gray", "dark gray", "bright blue"), 3L, 5L, 16L, 4L)
+                new Page<>(List.of("magenta", "brown", "gray", "dark gray", "bright blue"), 3L, 5L, 16L, 4L)
             )
             .addEqualityGroup(
-                new Page(List.of("magenta", "brown", "gray", "dark gray", "bright blue"), 2L, 10L, 16L, 4L)
+                new Page<>(List.of("magenta", "brown", "gray", "dark gray", "bright blue"), 2L, 10L, 16L, 4L)
             )
             .addEqualityGroup(
-                new Page(List.of("magenta", "brown", "gray", "dark gray", "bright blue"), 2L, 5L, 18L, 4L)
+                new Page<>(List.of("magenta", "brown", "gray", "dark gray", "bright blue"), 2L, 5L, 18L, 4L)
             )
             .addEqualityGroup(
-                new Page(List.of("magenta", "brown", "gray", "dark gray", "bright blue"), 2L, 5L, 16L, 5L)
+                new Page<>(List.of("magenta", "brown", "gray", "dark gray", "bright blue"), 2L, 5L, 16L, 5L)
             )
             .testEquals();
 
