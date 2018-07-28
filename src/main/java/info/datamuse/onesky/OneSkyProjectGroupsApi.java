@@ -11,7 +11,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Function;
 
 import static info.datamuse.onesky.OneSkyLocalesApi.LOCALE_CODE_KEY;
 import static info.datamuse.onesky.internal.JsonUtils.getOptionalJsonValue;
@@ -19,6 +18,7 @@ import static info.datamuse.onesky.internal.ListUtils.optionalListRequireNonNull
 import static java.util.Collections.emptyMap;
 import static java.util.Objects.requireNonNull;
 import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.toUnmodifiableList;
 
 /**
  * OneSky Project Groups API wrapper.
@@ -33,7 +33,7 @@ public final class OneSkyProjectGroupsApi extends AbstractOneSkyApi {
         private final String name;
         private final @Nullable Locale baseLocale;
         private final @Nullable List<Locale> enabledLocales;
-        private final @Nullable Integer projectCount;
+        private final @Nullable Long projectCount;
 
         /**
          * Project Group constructor.
@@ -47,7 +47,7 @@ public final class OneSkyProjectGroupsApi extends AbstractOneSkyApi {
             final String name,
             final @Nullable Locale baseLocale,
             final @Nullable List<Locale> enabledLocales,
-            final @Nullable Integer projectCount
+            final @Nullable Long projectCount
         ) {
             this.id = id;
             this.name = requireNonNull(name);
@@ -87,7 +87,7 @@ public final class OneSkyProjectGroupsApi extends AbstractOneSkyApi {
             return enabledLocales;
         }
 
-        public @Nullable Integer getProjectCount() {
+        public @Nullable Long getProjectCount() {
             return projectCount;
         }
 
@@ -134,6 +134,7 @@ public final class OneSkyProjectGroupsApi extends AbstractOneSkyApi {
     static final String PROJECT_GROUP_NAME_KEY = PROJECT_GROUP_NAME_PARAM;
     static final String PROJECT_GROUP_BASE_LOCALE_KEY = "base_language";
     static final String PROJECT_GROUP_PROJECT_COUNT_KEY = "project_count";
+    static final String PROJECT_GROUP_IS_BASE_LANGUAGE_KEY = "is_base_language";
 
     OneSkyProjectGroupsApi(final String apiKey, final String apiSecret, final HttpClient httpClient) {
         super(apiKey, apiSecret, httpClient);
@@ -177,27 +178,57 @@ public final class OneSkyProjectGroupsApi extends AbstractOneSkyApi {
             emptyMap(),
             identity()
         );
-        final CompletableFuture<List<Locale>> enabledLocalesPromise = apiGetListRequest(
+        final CompletableFuture<List<JSONObject>> enabledLocalesPromise = apiGetListRequest(
             String.format(Locale.ROOT, PROJECT_GROUP_ENABLED_LOCALES_BY_ID_API_URL_TEMPLATE, projectGroupId),
             emptyMap(),
-            dataItem -> Locale.forLanguageTag(
-                dataItem.getString(LOCALE_CODE_KEY)
-            )
+            identity()
         );
         return projectGroupJsonPromise.thenCombine(enabledLocalesPromise, // TODO: handle the "id not found" case
             (projectGroupJson, enabledLocales) -> toProjectGroup(projectGroupJson, enabledLocales)
         );
     }
 
-    // TODO: implement Retrieve ("Show" + "Languages"), Delete
+    public CompletableFuture<Void> delete(final long projectGroupId) {
+        return apiDeleteRequest(
+            String.format(Locale.ROOT, PROJECT_GROUP_BY_ID_API_URL_TEMPLATE, projectGroupId),
+            emptyMap()
+        );
+    }
 
-    private static ProjectGroup toProjectGroup(final JSONObject projectGroupJson, final @Nullable List<Locale> enabledLocales) {
+    private static ProjectGroup toProjectGroup(final JSONObject projectGroupJson, final @Nullable List<JSONObject> enabledLocalesJsons) {
+        final @Nullable Locale baseLocaleProperty = getOptionalJsonValue(
+            projectGroupJson,
+            PROJECT_GROUP_BASE_LOCALE_KEY,
+            JSONObject.class,
+            localeJson -> Locale.forLanguageTag(localeJson.getString(LOCALE_CODE_KEY))
+        );
+        final @Nullable Locale baseLocale =
+            baseLocaleProperty != null
+                ? baseLocaleProperty
+                : (
+                    enabledLocalesJsons != null
+                        ? enabledLocalesJsons.stream()
+                              .filter(localeJson -> localeJson.getBoolean(PROJECT_GROUP_IS_BASE_LANGUAGE_KEY))
+                              .findFirst()
+                              .map(
+                                  localeJson -> Locale.forLanguageTag(localeJson.getString(LOCALE_CODE_KEY))
+                              ).orElse(null)
+                        : null
+                );
+        final @Nullable List<Locale> enabledLocales =
+            enabledLocalesJsons != null
+                ? enabledLocalesJsons.stream()
+                      .map(
+                          localeJson -> Locale.forLanguageTag(localeJson.getString(LOCALE_CODE_KEY))
+                      ).collect(toUnmodifiableList())
+                : null;
+
         return new ProjectGroup(
             projectGroupJson.getLong(PROJECT_GROUP_ID_KEY),
             projectGroupJson.getString(PROJECT_GROUP_NAME_KEY),
-            getOptionalJsonValue(projectGroupJson, PROJECT_GROUP_BASE_LOCALE_KEY, JSONObject.class, localeJson -> Locale.forLanguageTag(localeJson.getString(LOCALE_CODE_KEY))),
+            baseLocale,
             enabledLocales,
-            getOptionalJsonValue(projectGroupJson, PROJECT_GROUP_PROJECT_COUNT_KEY, Integer.class)
+            getOptionalJsonValue(projectGroupJson, PROJECT_GROUP_PROJECT_COUNT_KEY, String.class, Long::parseLong)
         );
     }
 

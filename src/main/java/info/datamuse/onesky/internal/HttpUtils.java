@@ -28,12 +28,12 @@ public final class HttpUtils {
     /**
      * HTTP response status code 200 ("OK").
      */
-    public static final long HTTP_STATUS_OK = 200;
+    public static final int HTTP_STATUS_OK = 200;
 
     /**
      * HTTP response status code 201 ("Created").
      */
-    public static final long HTTP_STATUS_CREATED = 201;
+    public static final int HTTP_STATUS_CREATED = 201;
 
     /**
      * {@code Content-Type} header name.

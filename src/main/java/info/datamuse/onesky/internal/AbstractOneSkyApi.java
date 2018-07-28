@@ -23,6 +23,7 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import static info.datamuse.onesky.internal.HttpUtils.CONTENT_TYPE_HEADER;
+import static info.datamuse.onesky.internal.HttpUtils.HTTP_DELETE;
 import static info.datamuse.onesky.internal.HttpUtils.HTTP_GET;
 import static info.datamuse.onesky.internal.HttpUtils.HTTP_POST;
 import static info.datamuse.onesky.internal.HttpUtils.HTTP_STATUS_CREATED;
@@ -43,7 +44,9 @@ public abstract class AbstractOneSkyApi {
     /**
      * OneSky API base URL.
      */
-    public static final String API_BASE_URL = "https://platform.api.onesky.io/1";
+    protected static final String API_BASE_URL = "https://platform.api.onesky.io/1";
+
+    private static final long MAX_PAGE_SIZE = 100;
 
     private static final Logger logger = getLogger(AbstractOneSkyApi.class);
 
@@ -112,12 +115,22 @@ public abstract class AbstractOneSkyApi {
         final long maxItemsPerPage,
         final Function<JSONObject, T> dataItemConverter
     ) {
+        if (pageNumber < 1) {
+            throw new IllegalArgumentException(String.format(Locale.ROOT, "`pageNumber` must be positive, but was: %d", pageNumber));
+        }
+        if (maxItemsPerPage < 1) {
+            throw new IllegalArgumentException(String.format(Locale.ROOT, "`maxItemsPerPage` must be positive, but was: %d", maxItemsPerPage));
+        }
+        if (maxItemsPerPage > MAX_PAGE_SIZE) {
+            throw new IllegalArgumentException(String.format(Locale.ROOT, "`maxItemsPerPage` must be <=%d, but was: %d", MAX_PAGE_SIZE, maxItemsPerPage));
+        }
+
         final Map<String, String> parametersWithPaging = new HashMap<>(parameters);
         parametersWithPaging.put("per_page", Long.toString(maxItemsPerPage));
         parametersWithPaging.put("page", Long.toString(pageNumber));
 
         return
-            apiRequest(HTTP_GET, noBody(), apiUrl, parametersWithPaging, HTTP_STATUS_OK)
+            apiJsonRequest(HTTP_GET, noBody(), apiUrl, parametersWithPaging, HTTP_STATUS_OK)
                 .thenApply(responseJson -> {
                     try {
                         final JSONObject metaJson = responseJson.getJSONObject("meta");
@@ -149,6 +162,15 @@ public abstract class AbstractOneSkyApi {
                 });
     }
 
+    protected final CompletableFuture<Void> apiDeleteRequest(
+        final String apiUrl,
+        final Map<String, String> parameters
+    ) {
+        return
+            apiRequest(HTTP_DELETE, noBody(), apiUrl, parameters, HTTP_STATUS_OK)
+                .thenApply(responseJson -> null);
+    }
+
     /**
      * Executes an API request and returns a {@link CompletableFuture promise} for the result's {@code data} part.
      *
@@ -164,10 +186,10 @@ public abstract class AbstractOneSkyApi {
         final HttpRequest.BodyPublisher httpRequestBodyPublisher,
         final String apiUrl,
         final Map<String, String> parameters,
-        final long expectedStatus
+        final int expectedStatus
     ) {
         return
-            apiRequest(httpMethod, httpRequestBodyPublisher, apiUrl, parameters, expectedStatus)
+            apiJsonRequest(httpMethod, httpRequestBodyPublisher, apiUrl, parameters, expectedStatus)
                 .thenApply(responseJson -> responseJson.get("data"));
     }
 
@@ -181,12 +203,32 @@ public abstract class AbstractOneSkyApi {
      * @param expectedStatus expected HTTP response status on success
      * @return retrieved data (promise)
      */
-    protected final CompletableFuture<JSONObject> apiRequest(
+    protected final CompletableFuture<JSONObject> apiJsonRequest(
         final String httpMethod,
         final HttpRequest.BodyPublisher httpRequestBodyPublisher,
         final String apiUrl,
         final Map<String, String> parameters,
-        final long expectedStatus
+        final int expectedStatus
+    ) {
+        return
+            apiRequest(httpMethod, httpRequestBodyPublisher, apiUrl, parameters, expectedStatus)
+                .thenApply(httpResponseBody -> {
+                    try {
+                        final JSONObject responseJson = new JSONObject(httpResponseBody);
+                        checkSuccessResponse(responseJson, expectedStatus);
+                        return responseJson;
+                    } catch (final JSONException e) {
+                        throw new OneSkyApiException(e);
+                    }
+                });
+    }
+
+    protected final CompletableFuture<String> apiRequest(
+        final String httpMethod,
+        final HttpRequest.BodyPublisher httpRequestBodyPublisher,
+        final String apiUrl,
+        final Map<String, String> parameters,
+        final int expectedStatus
     ) {
         logger.info("OneSky API call"); // TODO: include url with parameters, excluding auth data
         // TODO: log from within the Future, when finished
@@ -203,18 +245,20 @@ public abstract class AbstractOneSkyApi {
             HttpRequest.newBuilder(URI.create(apiUrlWithParameters))
                 .method(httpMethod, httpRequestBodyPublisher)
                 .header(CONTENT_TYPE_HEADER, "application/json")
-                .build(); // TODO: cache this
+                .build();
         return
             httpClient
                 .sendAsync(apiHttpRequest, HttpResponse.BodyHandlers.ofString())
                 .thenApply(httpResponse -> {
-                    try {
-                        final JSONObject responseJson = new JSONObject(httpResponse.body());
-                        checkSuccessResponse(responseJson, expectedStatus);
-                        return responseJson;
-                    } catch (final JSONException e) {
-                        throw new OneSkyApiException(e);
+                    final int httpStatus = httpResponse.statusCode();
+                    if (httpStatus != expectedStatus) {
+                        throw new OneSkyApiException(String.format(
+                            Locale.ROOT,
+                            "Expected status=%d, but API responded with status=%d",
+                            expectedStatus, httpStatus
+                        ));
                     }
+                    return httpResponse.body();
                 });
     }
 
@@ -228,9 +272,9 @@ public abstract class AbstractOneSkyApi {
         );
     }
 
-    private static void checkSuccessResponse(final JSONObject responseJson, final long expectedStatus) {
+    private static void checkSuccessResponse(final JSONObject responseJson, final int expectedStatus) {
         final JSONObject metaJson = responseJson.getJSONObject("meta");
-        final long status = metaJson.getLong("status");
+        final int status = metaJson.getInt("status");
         if (status != expectedStatus) {
             final @Nullable String message = getOptionalJsonValue(metaJson, "message", String.class);
             throw new OneSkyApiException(String.format(

@@ -6,11 +6,16 @@ import org.junit.jupiter.api.Test;
 import java.time.Instant;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.CompletionException;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasToString;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public final class OneSkyProjectGroupsApiTest extends AbstractOneSkyApiTest {
 
@@ -22,14 +27,14 @@ public final class OneSkyProjectGroupsApiTest extends AbstractOneSkyApiTest {
             "Cologne",
             Locale.GERMAN,
             List.of(Locale.CHINESE, Locale.SIMPLIFIED_CHINESE),
-            42
+            42L
         );
 
         assertThat(cologneProjectGroup.getId(), is(equalTo(4711L)));
         assertThat(cologneProjectGroup.getName(), is(equalTo("Cologne")));
         assertThat(cologneProjectGroup.getBaseLocale(), is(equalTo(Locale.GERMAN)));
         assertThat(cologneProjectGroup.getEnabledLocales(), is(equalTo(List.of(Locale.CHINESE, Locale.SIMPLIFIED_CHINESE))));
-        assertThat(cologneProjectGroup.getProjectCount(), is(equalTo(42)));
+        assertThat(cologneProjectGroup.getProjectCount(), is(equalTo(42L)));
 
         new EqualsTester()
             .addEqualityGroup(
@@ -37,28 +42,28 @@ public final class OneSkyProjectGroupsApiTest extends AbstractOneSkyApiTest {
                 cologneProjectGroup
             )
             .addEqualityGroup(
-                new OneSkyProjectGroupsApi.ProjectGroup(1147L, "Cologne", Locale.GERMAN, List.of(Locale.CHINESE, Locale.SIMPLIFIED_CHINESE), 42)
+                new OneSkyProjectGroupsApi.ProjectGroup(1147L, "Cologne", Locale.GERMAN, List.of(Locale.CHINESE, Locale.SIMPLIFIED_CHINESE), 42L)
             )
             .addEqualityGroup(
-                new OneSkyProjectGroupsApi.ProjectGroup(4711L, "Koeln", Locale.GERMAN, List.of(Locale.CHINESE, Locale.SIMPLIFIED_CHINESE), 42)
+                new OneSkyProjectGroupsApi.ProjectGroup(4711L, "Koeln", Locale.GERMAN, List.of(Locale.CHINESE, Locale.SIMPLIFIED_CHINESE), 42L)
             )
             .addEqualityGroup(
-                new OneSkyProjectGroupsApi.ProjectGroup(4711L, "Cologne", null, List.of(Locale.CHINESE, Locale.SIMPLIFIED_CHINESE), 42)
+                new OneSkyProjectGroupsApi.ProjectGroup(4711L, "Cologne", null, List.of(Locale.CHINESE, Locale.SIMPLIFIED_CHINESE), 42L)
             )
             .addEqualityGroup(
-                new OneSkyProjectGroupsApi.ProjectGroup(4711L, "Cologne", Locale.FRENCH, List.of(Locale.CHINESE, Locale.SIMPLIFIED_CHINESE), 42)
+                new OneSkyProjectGroupsApi.ProjectGroup(4711L, "Cologne", Locale.FRENCH, List.of(Locale.CHINESE, Locale.SIMPLIFIED_CHINESE), 42L)
             )
             .addEqualityGroup(
-                new OneSkyProjectGroupsApi.ProjectGroup(4711L, "Cologne", Locale.GERMAN, null, 42)
+                new OneSkyProjectGroupsApi.ProjectGroup(4711L, "Cologne", Locale.GERMAN, null, 42L)
             )
             .addEqualityGroup(
-                new OneSkyProjectGroupsApi.ProjectGroup(4711L, "Cologne", Locale.GERMAN, List.of(Locale.SIMPLIFIED_CHINESE, Locale.CHINESE), 42)
+                new OneSkyProjectGroupsApi.ProjectGroup(4711L, "Cologne", Locale.GERMAN, List.of(Locale.SIMPLIFIED_CHINESE, Locale.CHINESE), 42L)
             )
             .addEqualityGroup(
                 new OneSkyProjectGroupsApi.ProjectGroup(4711L, "Cologne", Locale.GERMAN, List.of(Locale.CHINESE, Locale.SIMPLIFIED_CHINESE), null)
             )
             .addEqualityGroup(
-                new OneSkyProjectGroupsApi.ProjectGroup(4711L, "Cologne", Locale.GERMAN, List.of(Locale.CHINESE, Locale.SIMPLIFIED_CHINESE), 24)
+                new OneSkyProjectGroupsApi.ProjectGroup(4711L, "Cologne", Locale.GERMAN, List.of(Locale.CHINESE, Locale.SIMPLIFIED_CHINESE), 24L)
             )
             .testEquals();
 
@@ -89,6 +94,39 @@ public final class OneSkyProjectGroupsApiTest extends AbstractOneSkyApiTest {
 
         assertThat(projectGroup3.getName(), is(equalTo(projectGroupName3)));
         assertThat(projectGroup3.getBaseLocale(), is(equalTo(Locale.ENGLISH)));
+
+        // Retrieve list
+        final Page<OneSkyProjectGroupsApi.ProjectGroup> projectGroupsPage1 = oneSkyClient.projectGroups().pagedList(1L, 80L).join();
+        assertThat(projectGroupsPage1.getPageItems(), is(not(empty())));
+        assertThat(projectGroupsPage1.getPageNumber(), is(equalTo(1L)));
+        assertThat(projectGroupsPage1.getMaxItemsPerPage(), is(equalTo(80L)));
+        assertThat(projectGroupsPage1.getTotalItemsCount(), is(greaterThanOrEqualTo(3L)));
+        assertThat(projectGroupsPage1.getTotalPagesCount(), is(greaterThanOrEqualTo(1L)));
+
+        // Retrieve single element
+        final long projectGroupId1 = projectGroup1.getId();
+        final OneSkyProjectGroupsApi.ProjectGroup retrievedProjectGroup1 = oneSkyClient.projectGroups().retrieve(projectGroupId1).join();
+        assertThat(
+            retrievedProjectGroup1,
+            is(equalTo(
+                new OneSkyProjectGroupsApi.ProjectGroup(projectGroupId1, projectGroupName1, Locale.GERMAN, List.of(Locale.GERMAN), 0L)
+            ))
+        );
+
+        // Delete
+        oneSkyClient.projectGroups().delete(projectGroupId1).join();
+        oneSkyClient.projectGroups().delete(projectGroup2.getId()).join();
+        oneSkyClient.projectGroups().delete(projectGroup3.getId()).join();
+
+        // Test retrieving or deleting non-existing items
+        assertThrows(
+            CompletionException.class,
+            () -> oneSkyClient.projectGroups().retrieve(projectGroupId1).join()
+        );
+        assertThrows(
+            CompletionException.class,
+            () -> oneSkyClient.projectGroups().delete(projectGroupId1).join()
+        );
         // }}} Test Data End
     }
 
