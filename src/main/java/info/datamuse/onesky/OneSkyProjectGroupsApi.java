@@ -41,6 +41,8 @@ public final class OneSkyProjectGroupsApi extends AbstractOneSkyApi {
          * @param id project group id
          * @param name project group name
          * @param baseLocale optional base locale
+         * @param enabledLocales optional list of enabled locales
+         * @param projectCount optional number of projects within this project group
          */
         public ProjectGroup(
             final long id,
@@ -83,10 +85,20 @@ public final class OneSkyProjectGroupsApi extends AbstractOneSkyApi {
             return baseLocale;
         }
 
+        /**
+         * Returns optional list of enabled locales.
+         *
+         * @return optional list of enabled locales
+         */
         public @Nullable List<Locale> getEnabledLocales() {
             return enabledLocales;
         }
 
+        /**
+         * Returns optional number of projects within this project group.
+         *
+         * @return optional number of projects within this project group
+         */
         public @Nullable Long getProjectCount() {
             return projectCount;
         }
