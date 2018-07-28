@@ -46,7 +46,14 @@ public abstract class AbstractOneSkyApi {
      */
     protected static final String API_BASE_URL = "https://platform.api.onesky.io/1";
 
+    private static final String PAGE_NUMBER_PARAM = "page";
+    private static final String PAGE_SIZE_PARAM = "per_page";
     private static final long MAX_PAGE_SIZE = 100;
+
+    private static final String RESPONSE_META_KEY = "meta";
+    private static final String RESPONSE_DATA_KEY = "data";
+    private static final String TOTAL_ITEMS_COUNT_KEY = "record_count";
+    private static final String TOTAL_PAGES_COUNT_KEY = "page_count";
 
     private static final Logger logger = getLogger(AbstractOneSkyApi.class);
 
@@ -78,7 +85,7 @@ public abstract class AbstractOneSkyApi {
             apiDataRequest(HTTP_GET, noBody(), apiUrl, parameters, HTTP_STATUS_OK)
                 .thenApply(data -> {
                     if (!(data instanceof JSONObject)) {
-                        throw unexpectedJsonTypeException("data", data, JSONObject.class);
+                        throw unexpectedJsonTypeException(RESPONSE_DATA_KEY, data, JSONObject.class);
                     }
                     return dataConverter.apply((JSONObject) data);
                 });
@@ -102,7 +109,7 @@ public abstract class AbstractOneSkyApi {
             apiDataRequest(HTTP_GET, noBody(), apiUrl, parameters, HTTP_STATUS_OK)
                 .thenApply(data -> {
                     if (!(data instanceof JSONArray)) {
-                        throw unexpectedJsonTypeException("data", data, JSONArray.class);
+                        throw unexpectedJsonTypeException(RESPONSE_DATA_KEY, data, JSONArray.class);
                     }
                     return getResponseDataList((JSONArray) data, dataItemConverter);
                 });
@@ -126,20 +133,20 @@ public abstract class AbstractOneSkyApi {
         }
 
         final Map<String, String> parametersWithPaging = new HashMap<>(parameters);
-        parametersWithPaging.put("per_page", Long.toString(maxItemsPerPage));
-        parametersWithPaging.put("page", Long.toString(pageNumber));
+        parametersWithPaging.put(PAGE_NUMBER_PARAM, Long.toString(pageNumber));
+        parametersWithPaging.put(PAGE_SIZE_PARAM, Long.toString(maxItemsPerPage));
 
         return
             apiJsonRequest(HTTP_GET, noBody(), apiUrl, parametersWithPaging, HTTP_STATUS_OK)
                 .thenApply(responseJson -> {
                     try {
-                        final JSONObject metaJson = responseJson.getJSONObject("meta");
+                        final JSONObject metaJson = responseJson.getJSONObject(RESPONSE_META_KEY);
                         return new Page<>(
-                            getResponseDataList(responseJson.getJSONArray("data"), dataItemConverter),
+                            getResponseDataList(responseJson.getJSONArray(RESPONSE_DATA_KEY), dataItemConverter),
                             pageNumber,
                             maxItemsPerPage,
-                            metaJson.getLong("record_count"),
-                            metaJson.getLong("page_count")
+                            metaJson.getLong(TOTAL_ITEMS_COUNT_KEY),
+                            metaJson.getLong(TOTAL_PAGES_COUNT_KEY)
                         );
                     } catch (final JSONException e) {
                         throw new OneSkyApiException(e);
@@ -156,7 +163,7 @@ public abstract class AbstractOneSkyApi {
             apiDataRequest(HTTP_POST, noBody(), apiUrl, parameters, HTTP_STATUS_CREATED)
                 .thenApply(data -> {
                     if (!(data instanceof JSONObject)) {
-                        throw unexpectedJsonTypeException("data", data, JSONObject.class);
+                        throw unexpectedJsonTypeException(RESPONSE_DATA_KEY, data, JSONObject.class);
                     }
                     return dataConverter.apply((JSONObject) data);
                 });
@@ -190,7 +197,7 @@ public abstract class AbstractOneSkyApi {
     ) {
         return
             apiJsonRequest(httpMethod, httpRequestBodyPublisher, apiUrl, parameters, expectedStatus)
-                .thenApply(responseJson -> responseJson.get("data"));
+                .thenApply(responseJson -> responseJson.get(RESPONSE_DATA_KEY));
     }
 
     /**
@@ -252,11 +259,7 @@ public abstract class AbstractOneSkyApi {
                 .thenApply(httpResponse -> {
                     final int httpStatus = httpResponse.statusCode();
                     if (httpStatus != expectedStatus) {
-                        throw new OneSkyApiException(String.format(
-                            Locale.ROOT,
-                            "Expected status=%d, but API responded with status=%d",
-                            expectedStatus, httpStatus
-                        ));
+                        throw new OneSkyApiException(String.format(Locale.ROOT, "Expected status=%d, but API responded with status=%d", expectedStatus, httpStatus));
                     }
                     return httpResponse.body();
                 });
@@ -273,15 +276,11 @@ public abstract class AbstractOneSkyApi {
     }
 
     private static void checkSuccessResponse(final JSONObject responseJson, final int expectedStatus) {
-        final JSONObject metaJson = responseJson.getJSONObject("meta");
+        final JSONObject metaJson = responseJson.getJSONObject(RESPONSE_META_KEY);
         final int status = metaJson.getInt("status");
         if (status != expectedStatus) {
             final @Nullable String message = getOptionalJsonValue(metaJson, "message", String.class);
-            throw new OneSkyApiException(String.format(
-                Locale.ROOT,
-                "Expected status=%d, but API responded with status=%d, message=%s",
-                expectedStatus, status, message
-            ));
+            throw new OneSkyApiException(String.format(Locale.ROOT, "Expected status=%d, but API responded with status=%d, message=%s", expectedStatus, status, message));
         }
     }
 
@@ -289,7 +288,7 @@ public abstract class AbstractOneSkyApi {
         return StreamSupport.stream(dataJson.spliterator(), false)
             .map(dataItem -> {
                 if (!(dataItem instanceof JSONObject)) {
-                    throw unexpectedJsonTypeException("data[].*", dataItem, JSONObject.class);
+                    throw unexpectedJsonTypeException(RESPONSE_DATA_KEY + "[].*", dataItem, JSONObject.class);
                 }
                 return dataItemConverter.apply((JSONObject) dataItem);
             })

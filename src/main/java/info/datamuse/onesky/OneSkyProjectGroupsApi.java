@@ -161,6 +161,13 @@ public final class OneSkyProjectGroupsApi extends AbstractOneSkyApi {
         );
     }
 
+    /**
+     * Fetches a page of project groups.
+     *
+     * @param pageNumber target page number ({@code 1}-based)
+     * @param maxItemsPerPage maximum number of items per page ("page size")
+     * @return page of project groups ({@link CompletableFuture promise})
+     */
     public CompletableFuture<Page<ProjectGroup>> pagedList(final long pageNumber, final long maxItemsPerPage) {
         return apiGetPagedListRequest(
             PROJECT_GROUPS_API_URL,
@@ -171,7 +178,13 @@ public final class OneSkyProjectGroupsApi extends AbstractOneSkyApi {
         );
     }
 
-    // TODO: javadoc - "Show" + "Languages"
+    /**
+     * Fetches the project group with the specified id (the "SHOW project group details" API command),
+     * along with its list of enabled locales (the "list enabled LANGUAGES" API command).
+     *
+     * @param projectGroupId target project group id
+     * @return project group ({@link CompletableFuture promise})
+     */
     public CompletableFuture<ProjectGroup> retrieve(final long projectGroupId) {
         final CompletableFuture<JSONObject> projectGroupJsonPromise = apiGetObjectRequest(
             String.format(Locale.ROOT, PROJECT_GROUP_BY_ID_API_URL_TEMPLATE, projectGroupId),
@@ -183,11 +196,17 @@ public final class OneSkyProjectGroupsApi extends AbstractOneSkyApi {
             emptyMap(),
             identity()
         );
-        return projectGroupJsonPromise.thenCombine(enabledLocalesPromise, // TODO: handle the "id not found" case
+        return projectGroupJsonPromise.thenCombine(enabledLocalesPromise,
             (projectGroupJson, enabledLocales) -> toProjectGroup(projectGroupJson, enabledLocales)
         );
     }
 
+    /**
+     * Deletes the project group with the specified id.
+     *
+     * @param projectGroupId target project group id
+     * @return {@link CompletableFuture promise} of the project group deletion
+     */
     public CompletableFuture<Void> delete(final long projectGroupId) {
         return apiDeleteRequest(
             String.format(Locale.ROOT, PROJECT_GROUP_BY_ID_API_URL_TEMPLATE, projectGroupId),
