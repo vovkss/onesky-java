@@ -146,7 +146,7 @@ public final class OneSkyProjectGroupsApi extends AbstractOneSkyApi {
     static final String PROJECT_GROUP_NAME_KEY = PROJECT_GROUP_NAME_PARAM;
     static final String PROJECT_GROUP_BASE_LOCALE_KEY = "base_language";
     static final String PROJECT_GROUP_PROJECT_COUNT_KEY = "project_count";
-    static final String PROJECT_GROUP_IS_BASE_LANGUAGE_KEY = "is_base_language";
+    static final String PROJECT_GROUP_IS_BASE_LOCALE_KEY = "is_base_language";
 
     OneSkyProjectGroupsApi(final String apiKey, final String apiSecret, final HttpClient httpClient) {
         super(apiKey, apiSecret, httpClient);
@@ -203,13 +203,13 @@ public final class OneSkyProjectGroupsApi extends AbstractOneSkyApi {
             emptyMap(),
             identity()
         );
-        final CompletableFuture<List<JSONObject>> enabledLocalesPromise = apiGetListRequest(
+        final CompletableFuture<List<JSONObject>> enabledLocalesJsonsPromise = apiGetListRequest(
             String.format(Locale.ROOT, PROJECT_GROUP_ENABLED_LOCALES_BY_ID_API_URL_TEMPLATE, projectGroupId),
             emptyMap(),
             identity()
         );
-        return projectGroupJsonPromise.thenCombine(enabledLocalesPromise,
-            (projectGroupJson, enabledLocales) -> toProjectGroup(projectGroupJson, enabledLocales)
+        return projectGroupJsonPromise.thenCombine(enabledLocalesJsonsPromise,
+            (projectGroupJson, enabledLocalesJsons) -> toProjectGroup(projectGroupJson, enabledLocalesJsons)
         );
     }
 
@@ -239,7 +239,7 @@ public final class OneSkyProjectGroupsApi extends AbstractOneSkyApi {
                 : (
                     enabledLocalesJsons != null
                         ? enabledLocalesJsons.stream()
-                              .filter(localeJson -> localeJson.getBoolean(PROJECT_GROUP_IS_BASE_LANGUAGE_KEY))
+                              .filter(localeJson -> localeJson.getBoolean(PROJECT_GROUP_IS_BASE_LOCALE_KEY))
                               .findFirst()
                               .map(
                                   localeJson -> Locale.forLanguageTag(localeJson.getString(LOCALE_CODE_KEY))
