@@ -56,6 +56,17 @@ To use the API synchronously, just invoke `CompletableFuture.join()`, e.g.:
     List<Locale> locales = oneSkyClient.locales().list().join();
 
 
+**Project Groups API example:**
+
+    OneSkyProjectGroupsApi.ProjectGroup javaGroup = oneSkyClient.projectGroups().create("Java", Locale.CHINESE).join();
+
+    Page<OneSkyProjectGroupsApi.ProjectGroup> groups = oneSkyClient.projectGroups().pagedList(1, 50).join();
+
+    OneSkyProjectGroupsApi.ProjectGroup group4711 = oneSkyClient.projectGroups().retrieve(4711).join();
+
+    oneSkyClient.projectGroups().delete(1147).join();
+
+
 **Project Types API example:**
 
     List<OneSkyProjectTypesApi.ProjectType> projectTypes = oneSkyClient.projectTypes().list().join();
