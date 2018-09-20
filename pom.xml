@@ -41,7 +41,7 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
     <!-- Java/Maven versions -->
-    <maven.version>3.5.2</maven.version>
+    <maven.version>3.5.4</maven.version>
     <java.version>11</java.version>
 
     <!-- Dependencies versions -->
