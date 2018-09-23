@@ -28,16 +28,16 @@ public final class OneSkyProjectsApi extends AbstractOneSkyApi {
         private final String name;
         private final @Nullable String description;
         private final @Nullable ProjectType projectType;
-        private final @Nullable Long countOfStrings;
-        private final @Nullable Long countOfWords;
+        private final @Nullable Integer countOfStrings;
+        private final @Nullable Integer countOfWords;
 
         public Project(
                 final long id,
                 final String name,
                 final @Nullable String description,
                 final @Nullable ProjectType projectType,
-                final @Nullable Long countOfStrings,
-                final @Nullable Long countOfWords) {
+                final @Nullable Integer countOfStrings,
+                final @Nullable Integer countOfWords) {
             this.id = id;
             this.name = name;
             this.description = description;
@@ -65,21 +65,26 @@ public final class OneSkyProjectsApi extends AbstractOneSkyApi {
         }
 
         @Nullable
-        public Long getCountOfStrings() {
+        public Integer getCountOfStrings() {
             return countOfStrings;
         }
 
         @Nullable
-        public Long getCountOfWords() {
+        public Integer getCountOfWords() {
             return countOfWords;
         }
 
         @Override
-        public boolean equals(Object o) {
+        public boolean equals(final Object o) {
             if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            Project project = (Project) o;
-            return id == project.id;
+            if (!(o instanceof Project)) return false;
+            final Project project = (Project) o;
+            return id == project.id &&
+                    Objects.equals(name, project.name) &&
+                    Objects.equals(description, project.description) &&
+                    Objects.equals(projectType, project.projectType) &&
+                    Objects.equals(countOfStrings, project.countOfStrings) &&
+                    Objects.equals(countOfWords, project.countOfWords);
         }
 
         @Override
@@ -101,7 +106,7 @@ public final class OneSkyProjectsApi extends AbstractOneSkyApi {
     }
 
     private static final String PROJECTS_API_URL = API_BASE_URL + "/projects";
-    private static final String PROJECTS_BY_ID_API_URL = PROJECTS_API_URL + "/%d";
+    private static final String PROJECTS_BY_ID_API_URL_TEMPLATE = PROJECTS_API_URL + "/%d";
     private static final String PROJECTS_BY_GROUP_ID_API_URL_TEMPLATE = PROJECT_GROUP_BY_ID_API_URL_TEMPLATE + "/projects";
 
     private static final String PROJECT_ID_KEY = "id";
@@ -142,9 +147,30 @@ public final class OneSkyProjectsApi extends AbstractOneSkyApi {
 
     public CompletableFuture<Project> retrieve(final long projectId) {
         return apiGetObjectRequest(
-                String.format(Locale.ROOT, PROJECTS_BY_ID_API_URL, projectId),
+                String.format(Locale.ROOT, PROJECTS_BY_ID_API_URL_TEMPLATE, projectId),
                 emptyMap(),
                 data -> toProject(data)
+        );
+    }
+
+    public CompletableFuture<Void> update(final long projectId, final @Nullable String name, final @Nullable String description) {
+        final Map<String, String> parameters = new HashMap<>();
+        if (name != null) {
+            parameters.put(PROJECT_NAME_PARAM, name);
+        }
+        if (description != null) {
+            parameters.put(PROJECT_DESCRIPTION_PARAM, description);
+        }
+        return apiUpdateRequest(
+                String.format(Locale.ROOT, PROJECTS_BY_ID_API_URL_TEMPLATE, projectId),
+                parameters
+        );
+    }
+
+    public CompletableFuture<Void> delete(final long projectId) {
+        return apiDeleteRequest(
+                String.format(Locale.ROOT, PROJECTS_BY_ID_API_URL_TEMPLATE, projectId),
+                emptyMap()
         );
     }
 
@@ -157,8 +183,8 @@ public final class OneSkyProjectsApi extends AbstractOneSkyApi {
                 projectJson.getString(PROJECT_NAME_KEY),
                 getOptionalJsonValue(projectJson, PROJECT_DESCRIPTION_KEY, String.class, identity()),
                 projectType,
-                getOptionalJsonValue(projectJson, PROJECT_STRING_COUNT_KEY, String.class, Long::parseLong),
-                getOptionalJsonValue(projectJson, PROJECT_WORD_COUNT_KEY, String.class, Long::parseLong)
+                getOptionalJsonValue(projectJson, PROJECT_STRING_COUNT_KEY, Integer.class, identity()),
+                getOptionalJsonValue(projectJson, PROJECT_WORD_COUNT_KEY, Integer.class, identity())
         );
     }
 
