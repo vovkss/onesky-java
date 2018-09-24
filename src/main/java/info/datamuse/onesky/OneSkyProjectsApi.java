@@ -20,12 +20,14 @@ import static java.util.Collections.emptyMap;
 import static java.util.Objects.requireNonNull;
 import static java.util.function.Function.identity;
 
+/**
+ * OneSky Projects API Wrapper.
+ */
 public final class OneSkyProjectsApi extends AbstractOneSkyApi {
 
-    OneSkyProjectsApi(final String apiKey, final String apiSecret, final HttpClient httpClient) {
-        super(apiKey, apiSecret, httpClient);
-    }
-
+    /**
+     * OneSky Project.
+     */
     public static final class Project {
         private final long id;
         private final String name;
@@ -130,23 +132,51 @@ public final class OneSkyProjectsApi extends AbstractOneSkyApi {
         }
     }
 
+    /**
+     * OneSky Project Language.
+     */
     public static final class ProjectLanguage {
         private final Locale locale;
         private final boolean isReadyToPublish;
-        private final String translationProgress;
-        private final Instant uploadedAt;
-        private final Instant uploadedAtTimestamp;
+        private final short translationProgress;
+        private final @Nullable
+        Instant updatedAt;
 
         public ProjectLanguage(final Locale locale,
                                final boolean isReadyToPublish,
-                               final String translationProgress,
-                               final Instant uploadedAt,
-                               final Instant uploadedAtTimestamp) {
+                               final short translationProgress,
+                               final @Nullable Instant updatedAt) {
             this.locale = locale;
             this.isReadyToPublish = isReadyToPublish;
             this.translationProgress = translationProgress;
-            this.uploadedAt = uploadedAt;
-            this.uploadedAtTimestamp = uploadedAtTimestamp;
+            this.updatedAt = updatedAt;
+        }
+
+        public Locale getLocale() {
+            return locale;
+        }
+
+        public boolean isReadyToPublish() {
+            return isReadyToPublish;
+        }
+
+        public short getTranslationProgress() {
+            return translationProgress;
+        }
+
+        @Nullable
+        public Instant getUpdatedAt() {
+            return updatedAt;
+        }
+
+        @Override
+        public String toString() {
+            return "ProjectLanguage{" +
+                    "locale=" + locale +
+                    ", isReadyToPublish=" + isReadyToPublish +
+                    ", translationProgress=" + translationProgress +
+                    ", updatedAt=" + updatedAt +
+                    '}';
         }
     }
 
@@ -165,12 +195,15 @@ public final class OneSkyProjectsApi extends AbstractOneSkyApi {
     private static final String PROJECT_LANGUAGE_IS_BASE_LOCALE_KEY = "is_base_language";
     private static final String PROJECT_LANGUAGE_IS_READY_TO_PUBLISH_KEY = "is_ready_to_publish";
     private static final String PROJECT_LANGUAGE_TRANSLATION_PROGRESS_KEY = "translation_progress";
-    private static final String PROJECT_LANGUAGE_UPLOADED_AT_KEY = "uploaded_at";
-    private static final String PROJECT_LANGUAGE_UPLOADED_AT_TIMESTAMP_KEY = "uploaded_at_timestamp";
+    private static final String PROJECT_LANGUAGE_UPDATED_AT_TIMESTAMP_KEY = "last_updated_at_timestamp";
 
     private static final String PROJECT_PROJECT_TYPE_PARAM = PROJECT_PROJECT_TYPE_KEY;
     private static final String PROJECT_NAME_PARAM = PROJECT_NAME_KEY;
     private static final String PROJECT_DESCRIPTION_PARAM = PROJECT_DESCRIPTION_KEY;
+
+    OneSkyProjectsApi(final String apiKey, final String apiSecret, final HttpClient httpClient) {
+        super(apiKey, apiSecret, httpClient);
+    }
 
     public CompletableFuture<Project> create(final long projectGroupId, final String type, final @Nullable String name, final @Nullable String description) {
         final Map<String, String> parameters = new HashMap<>();
@@ -242,7 +275,9 @@ public final class OneSkyProjectsApi extends AbstractOneSkyApi {
                     .findFirst()
                     .map(OneSkyProjectsApi::toProjectLanguage)
                     .orElse(null);
-            projectLanguages = languages.stream().map(OneSkyProjectsApi::toProjectLanguage).collect(Collectors.toUnmodifiableList());
+            projectLanguages = languages.stream()
+                    .map(OneSkyProjectsApi::toProjectLanguage)
+                    .collect(Collectors.toUnmodifiableList());
         }
 
         @Nullable ProjectType projectType = getOptionalJsonValue(projectJson, PROJECT_PROJECT_TYPE_KEY, JSONObject.class, jsonProjectType -> new ProjectType(
@@ -265,9 +300,11 @@ public final class OneSkyProjectsApi extends AbstractOneSkyApi {
         return new ProjectLanguage(
                 Locale.forLanguageTag(projectLanguageJson.getString(LOCALE_CODE_KEY)),
                 projectLanguageJson.getBoolean(PROJECT_LANGUAGE_IS_READY_TO_PUBLISH_KEY),
-                projectLanguageJson.getString(PROJECT_LANGUAGE_TRANSLATION_PROGRESS_KEY),
-                Instant.parse(projectLanguageJson.getString(PROJECT_LANGUAGE_UPLOADED_AT_KEY)),
-                Instant.parse(projectLanguageJson.getString(PROJECT_LANGUAGE_UPLOADED_AT_TIMESTAMP_KEY))
+                Short.valueOf(projectLanguageJson.getString(PROJECT_LANGUAGE_TRANSLATION_PROGRESS_KEY)
+                        .trim()
+                        .replace("%", "")),
+                projectLanguageJson.isNull(PROJECT_LANGUAGE_UPDATED_AT_TIMESTAMP_KEY)
+                        ? null : Instant.ofEpochMilli(Long.valueOf(projectLanguageJson.getString(PROJECT_LANGUAGE_UPDATED_AT_TIMESTAMP_KEY)))
         );
     }
 

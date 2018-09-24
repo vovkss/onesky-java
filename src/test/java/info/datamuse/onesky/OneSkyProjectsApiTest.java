@@ -52,15 +52,15 @@ public final class OneSkyProjectsApiTest extends AbstractOneSkyApiTest {
         // Retrieve list
         final List<OneSkyProjectsApi.Project> projects = oneSkyClient.projects().list(projectGroup.getId()).join();
         assertThat(projects, hasSize(equalTo(2)));
-        assertThat(projects, hasItem(is(new OneSkyProjectsApi.Project(projectId1, projectName1, null, null, null, null))));
-        assertThat(projects, hasItem(is(new OneSkyProjectsApi.Project(project2.getId(), projectName2, null, null, null, null))));
+        assertThat(projects, hasItem(is(new OneSkyProjectsApi.Project(projectId1, projectName1, null, null, null, null, null, List.of()))));
+        assertThat(projects, hasItem(is(new OneSkyProjectsApi.Project(project2.getId(), projectName2, null, null, null, null, null, List.of()))));
 
         // Retrieve single element
         final OneSkyProjectsApi.Project retrievedProject1 = oneSkyClient.projects().retrieve(projectId1).join();
         assertThat(
                 retrievedProject1,
                 is(equalTo(
-                        new OneSkyProjectsApi.Project(projectId1, projectName1, projectDesc1, projectType1, 0, 0)
+                        new OneSkyProjectsApi.Project(projectId1, projectName1, projectDesc1, projectType1, 0, 0, null, List.of())
                 ))
         );
 
@@ -70,7 +70,7 @@ public final class OneSkyProjectsApiTest extends AbstractOneSkyApiTest {
         assertThat(
                 retrievedProjectUpdated,
                 is(equalTo(
-                        new OneSkyProjectsApi.Project(projectId1, "name1", "desc1", projectType1, 0, 0)
+                        new OneSkyProjectsApi.Project(projectId1, "name1", "desc1", projectType1, 0, 0, null, List.of())
                 ))
         );
 
