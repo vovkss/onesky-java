@@ -180,8 +180,8 @@ public final class OneSkyProjectsApi extends AbstractOneSkyApi {
         }
     }
 
-    private static final String PROJECTS_API_URL = API_BASE_URL + "/projects";
-    private static final String PROJECTS_BY_ID_API_URL_TEMPLATE = PROJECTS_API_URL + "/%d";
+    static final String PROJECTS_API_URL = API_BASE_URL + "/projects";
+    static final String PROJECTS_BY_ID_API_URL_TEMPLATE = PROJECTS_API_URL + "/%d";
     private static final String PROJECT_LANGUAGES_BY_ID_API_URL_TEMPLATE = PROJECTS_BY_ID_API_URL_TEMPLATE + "/languages";
     private static final String PROJECTS_BY_GROUP_ID_API_URL_TEMPLATE = PROJECT_GROUP_BY_ID_API_URL_TEMPLATE + "/projects";
 
