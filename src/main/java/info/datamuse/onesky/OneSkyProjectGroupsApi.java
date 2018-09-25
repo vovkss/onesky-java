@@ -135,8 +135,8 @@ public final class OneSkyProjectGroupsApi extends AbstractOneSkyApi {
         }
     }
 
-    private static final String PROJECT_GROUPS_API_URL = API_BASE_URL + "/project-groups";
-    private static final String PROJECT_GROUP_BY_ID_API_URL_TEMPLATE = PROJECT_GROUPS_API_URL + "/%d";
+    static final String PROJECT_GROUPS_API_URL = API_BASE_URL + "/project-groups";
+    static final String PROJECT_GROUP_BY_ID_API_URL_TEMPLATE = PROJECT_GROUPS_API_URL + "/%d";
     private static final String PROJECT_GROUP_ENABLED_LOCALES_BY_ID_API_URL_TEMPLATE = PROJECT_GROUP_BY_ID_API_URL_TEMPLATE + "/languages";
 
     private static final String PROJECT_GROUP_NAME_PARAM = "name";

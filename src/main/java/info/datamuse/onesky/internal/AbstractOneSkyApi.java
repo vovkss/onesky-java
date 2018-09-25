@@ -22,12 +22,7 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import static info.datamuse.onesky.internal.HttpUtils.CONTENT_TYPE_HEADER;
-import static info.datamuse.onesky.internal.HttpUtils.HTTP_DELETE;
-import static info.datamuse.onesky.internal.HttpUtils.HTTP_GET;
-import static info.datamuse.onesky.internal.HttpUtils.HTTP_POST;
-import static info.datamuse.onesky.internal.HttpUtils.HTTP_STATUS_CREATED;
-import static info.datamuse.onesky.internal.HttpUtils.HTTP_STATUS_OK;
+import static info.datamuse.onesky.internal.HttpUtils.*;
 import static info.datamuse.onesky.internal.JsonUtils.getOptionalJsonValue;
 import static info.datamuse.onesky.internal.JsonUtils.unexpectedJsonTypeException;
 import static java.net.http.HttpRequest.BodyPublishers.noBody;
@@ -167,6 +162,14 @@ public abstract class AbstractOneSkyApi {
                     }
                     return dataConverter.apply((JSONObject) data);
                 });
+    }
+
+    protected final CompletableFuture<Void> apiUpdateRequest(
+            final String apiUrl,
+            final Map<String, String> parameters
+    ) {
+        return apiRequest(HTTP_PUT, noBody(), apiUrl, parameters, HTTP_STATUS_OK)
+                        .thenApply(responseJson -> null);
     }
 
     protected final CompletableFuture<Void> apiDeleteRequest(
