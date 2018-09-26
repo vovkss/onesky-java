@@ -13,10 +13,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Instant;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -25,6 +22,7 @@ import java.util.stream.StreamSupport;
 import static info.datamuse.onesky.internal.HttpUtils.*;
 import static info.datamuse.onesky.internal.JsonUtils.getOptionalJsonValue;
 import static info.datamuse.onesky.internal.JsonUtils.unexpectedJsonTypeException;
+import static info.datamuse.onesky.internal.ListUtils.listFromMapEntries;
 import static java.net.http.HttpRequest.BodyPublishers.noBody;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toUnmodifiableList;
@@ -56,6 +54,8 @@ public abstract class AbstractOneSkyApi {
     private final String apiSecret;
     private final HttpClient httpClient;
 
+    private static final Map<String, String> JSON_CONTENT_TYPE_HEADER = Map.of(CONTENT_TYPE_HEADER, "application/json");
+
     /**
      * Protected constructor.
      *
@@ -77,7 +77,7 @@ public abstract class AbstractOneSkyApi {
         final Function<JSONObject, T> dataConverter
     ) {
         return
-            apiDataRequest(HTTP_GET, noBody(), apiUrl, parameters, HTTP_STATUS_OK)
+            apiDataRequest(HTTP_GET, noBody(), apiUrl, JSON_CONTENT_TYPE_HEADER, parameters, HTTP_STATUS_OK)
                 .thenApply(data -> {
                     if (!(data instanceof JSONObject)) {
                         throw unexpectedJsonTypeException(RESPONSE_DATA_KEY, data, JSONObject.class);
@@ -101,7 +101,7 @@ public abstract class AbstractOneSkyApi {
         final Function<JSONObject, T> dataItemConverter
     ) {
         return
-            apiDataRequest(HTTP_GET, noBody(), apiUrl, parameters, HTTP_STATUS_OK)
+            apiDataRequest(HTTP_GET, noBody(), apiUrl, JSON_CONTENT_TYPE_HEADER, parameters, HTTP_STATUS_OK)
                 .thenApply(data -> {
                     if (!(data instanceof JSONArray)) {
                         throw unexpectedJsonTypeException(RESPONSE_DATA_KEY, data, JSONArray.class);
@@ -132,7 +132,7 @@ public abstract class AbstractOneSkyApi {
         parametersWithPaging.put(PAGE_SIZE_PARAM, Long.toString(maxItemsPerPage));
 
         return
-            apiJsonRequest(HTTP_GET, noBody(), apiUrl, parametersWithPaging, HTTP_STATUS_OK)
+            apiJsonRequest(HTTP_GET, noBody(), apiUrl, JSON_CONTENT_TYPE_HEADER, parametersWithPaging, HTTP_STATUS_OK)
                 .thenApply(responseJson -> {
                     try {
                         final JSONObject metaJson = responseJson.getJSONObject(RESPONSE_META_KEY);
@@ -155,7 +155,7 @@ public abstract class AbstractOneSkyApi {
         final Function<JSONObject, T> dataConverter
     ) {
         return
-            apiDataRequest(HTTP_POST, noBody(), apiUrl, parameters, HTTP_STATUS_CREATED)
+            apiDataRequest(HTTP_POST, noBody(), apiUrl, JSON_CONTENT_TYPE_HEADER, parameters, HTTP_STATUS_CREATED)
                 .thenApply(data -> {
                     if (!(data instanceof JSONObject)) {
                         throw unexpectedJsonTypeException(RESPONSE_DATA_KEY, data, JSONObject.class);
@@ -168,7 +168,7 @@ public abstract class AbstractOneSkyApi {
             final String apiUrl,
             final Map<String, String> parameters
     ) {
-        return apiRequest(HTTP_PUT, noBody(), apiUrl, parameters, HTTP_STATUS_OK)
+        return apiRequest(HTTP_PUT, noBody(), apiUrl, JSON_CONTENT_TYPE_HEADER, parameters, HTTP_STATUS_OK)
                         .thenApply(responseJson -> null);
     }
 
@@ -177,8 +177,26 @@ public abstract class AbstractOneSkyApi {
         final Map<String, String> parameters
     ) {
         return
-            apiRequest(HTTP_DELETE, noBody(), apiUrl, parameters, HTTP_STATUS_OK)
+            apiRequest(HTTP_DELETE, noBody(), apiUrl, JSON_CONTENT_TYPE_HEADER, parameters, HTTP_STATUS_OK)
                 .thenApply(responseJson -> null);
+    }
+
+    protected final <T> CompletableFuture<T> apiMultiPartRequest(
+            final String apiUrl,
+            final HttpRequest.BodyPublisher httpRequestBodyPublisher,
+            final String boundary,
+            final Map<String, String> parameters,
+            final Function<JSONObject, T> dataConverter
+    ) {
+        final Map<String, String> headers = Map.of("Content-Type", "multipart/form-data; boundary=" + boundary);
+        return
+                apiDataRequest(HTTP_POST, httpRequestBodyPublisher, apiUrl, headers, parameters, HTTP_STATUS_CREATED)
+                        .thenApply(data -> {
+                            if (!(data instanceof JSONObject)) {
+                                throw unexpectedJsonTypeException(RESPONSE_DATA_KEY, data, JSONObject.class);
+                            }
+                            return dataConverter.apply((JSONObject) data);
+                        });
     }
 
     /**
@@ -195,11 +213,12 @@ public abstract class AbstractOneSkyApi {
         final String httpMethod,
         final HttpRequest.BodyPublisher httpRequestBodyPublisher,
         final String apiUrl,
+        final Map<String, String> headers,
         final Map<String, String> parameters,
         final int expectedStatus
     ) {
         return
-            apiJsonRequest(httpMethod, httpRequestBodyPublisher, apiUrl, parameters, expectedStatus)
+            apiJsonRequest(httpMethod, httpRequestBodyPublisher, apiUrl, headers, parameters, expectedStatus)
                 .thenApply(responseJson -> responseJson.get(RESPONSE_DATA_KEY));
     }
 
@@ -217,11 +236,12 @@ public abstract class AbstractOneSkyApi {
         final String httpMethod,
         final HttpRequest.BodyPublisher httpRequestBodyPublisher,
         final String apiUrl,
+        final Map<String, String> headers,
         final Map<String, String> parameters,
         final int expectedStatus
     ) {
         return
-            apiRequest(httpMethod, httpRequestBodyPublisher, apiUrl, parameters, expectedStatus)
+            apiRequest(httpMethod, httpRequestBodyPublisher, apiUrl, headers, parameters, expectedStatus)
                 .thenApply(httpResponseBody -> {
                     try {
                         final JSONObject responseJson = new JSONObject(httpResponseBody);
@@ -237,6 +257,7 @@ public abstract class AbstractOneSkyApi {
         final String httpMethod,
         final HttpRequest.BodyPublisher httpRequestBodyPublisher,
         final String apiUrl,
+        final Map<String, String> headers,
         final Map<String, String> parameters,
         final int expectedStatus
     ) {
@@ -254,7 +275,7 @@ public abstract class AbstractOneSkyApi {
         final HttpRequest apiHttpRequest =
             HttpRequest.newBuilder(URI.create(apiUrlWithParameters))
                 .method(httpMethod, httpRequestBodyPublisher)
-                .header(CONTENT_TYPE_HEADER, "application/json")
+                .headers(listFromMapEntries(headers).toArray(new String[0]))
                 .build();
         return
             httpClient
