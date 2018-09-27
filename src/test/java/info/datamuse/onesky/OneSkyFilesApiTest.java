@@ -2,11 +2,7 @@ package info.datamuse.onesky;
 
 import org.junit.jupiter.api.Test;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.List;
@@ -36,11 +32,10 @@ public class OneSkyFilesApiTest extends AbstractOneSkyApiTest {
 
 
         final Path path = pathToResourceFile("fruits.yaml");
-        final InputStream fis = Files.newInputStream(path);
         final String fileName = path.getFileName().toString();
         final OneSkyFilesApi.FileFormat fileFormat = OneSkyFilesApi.FileFormat.YAML;
 
-        final OneSkyFilesApi.File projectFile = oneSkyClient.files().upload(project.getId(), fileFormat, fileName, fis, Locale.GERMAN).join();
+        final OneSkyFilesApi.File projectFile = oneSkyClient.files().upload(project.getId(), fileFormat, path, Locale.GERMAN).join();
         assertThat(projectFile.getName(), is(equalTo(fileName)));
         assertThat(projectFile.getLocale(), is(equalTo(Locale.GERMAN)));
         assertThat(projectFile.getFormat(), is(equalTo(fileFormat)));
@@ -49,6 +44,29 @@ public class OneSkyFilesApiTest extends AbstractOneSkyApiTest {
 
         //needed for import completion
         Thread.sleep(5000);
+
+        // Retrieve list of import tasks
+        final Page<OneSkyImportTasksApi.ImportTask> importTasksPage = oneSkyClient.importTasks().pagedList(project.getId(), OneSkyFilesApi.FileStatus.ALL, 1L, 80L).join();
+        assertThat(importTasksPage.getPageItems(), is(not(empty())));
+        assertThat(importTasksPage.getPageNumber(), is(equalTo(1L)));
+        assertThat(importTasksPage.getMaxItemsPerPage(), is(equalTo(80L)));
+        assertThat(importTasksPage.getTotalItemsCount(), is(greaterThanOrEqualTo(1L)));
+        assertThat(importTasksPage.getTotalPagesCount(), is(greaterThanOrEqualTo(1L)));
+
+        final OneSkyImportTasksApi.ImportTask importTaskItem = importTasksPage.getPageItems().get(0);
+        assertThat(importTaskItem.getId(), is(equalTo(projectFile.getImportStatus().getId())));
+        assertThat(importTaskItem.getFileName(), is(equalTo(fileName)));
+        assertThat(importTaskItem.getImportStatus(), is(notNullValue()));
+        assertThat(importTaskItem.getImportStatus().getStatus(), is(notNullValue()));
+        assertThat(importTaskItem.getImportStatus().getLastImportedAt(), is(notNullValue()));
+
+        // Retrieve import task
+        final OneSkyImportTasksApi.ImportTask importTask = oneSkyClient.importTasks().retrieve(project.getId(), importTaskItem.getId()).join();
+        assertThat(importTask.getId(), is(equalTo(projectFile.getImportStatus().getId())));
+        assertThat(importTask.getLocale(), is(equalTo(Locale.GERMAN)));
+        assertThat(importTask.getFormat(), is(equalTo(fileFormat)));
+        assertThat(importTask.getImportStatus(), is(notNullValue()));
+        assertThat(importTask.getImportStatus().getLastImportedAt(), is(notNullValue()));
 
         // Retrieve list
         final Page<OneSkyFilesApi.File> projectFilesPage = oneSkyClient.files().pagedList(project.getId(), 1L, 80L).join();
