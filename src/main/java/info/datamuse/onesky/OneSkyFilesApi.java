@@ -6,9 +6,12 @@ import info.datamuse.onesky.internal.MultipartBodyEncoder;
 import org.json.JSONObject;
 
 import javax.annotation.Nullable;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.util.Locale;
 import java.util.Map;
@@ -213,6 +216,18 @@ public final class OneSkyFilesApi extends AbstractOneSkyApi {
 
     public CompletableFuture<File> upload(final long projectId,
                                           final FileFormat fileFormat,
+                                          final Path path,
+                                          final @Nullable Locale locale) {
+        try {
+            final InputStream is = Files.newInputStream(path);
+            return upload(projectId, fileFormat, path.getFileName().toString(), is, locale, true, false);
+        } catch (final IOException e) {
+            throw new OneSkyApiException(e);
+        }
+    }
+
+    public CompletableFuture<File> upload(final long projectId,
+                                          final FileFormat fileFormat,
                                           final String fileName,
                                           final InputStream inputStream,
                                           final @Nullable Locale locale) {
@@ -263,7 +278,7 @@ public final class OneSkyFilesApi extends AbstractOneSkyApi {
                                 fileImportJson.getLong(PROJECT_FILE_IMPORT_ID_KEY),
                                 FileStatus.forValue(fileImportJson.getString(PROJECT_FILE_IMPORT_STATUS_KEY)),
                                 fileJson.isNull(PROJECT_FILE_UPLOADED_AT_TIMESTAMP_KEY) ?
-                                        null : Instant.ofEpochMilli(fileJson.getLong(PROJECT_FILE_UPLOADED_AT_TIMESTAMP_KEY))
+                                        null : Instant.ofEpochSecond(fileJson.getLong(PROJECT_FILE_UPLOADED_AT_TIMESTAMP_KEY))
                         )
         );
         return new File(
@@ -283,7 +298,7 @@ public final class OneSkyFilesApi extends AbstractOneSkyApi {
         final FileImport fileImport = new FileImport(
                 fileImportJson.getLong(PROJECT_FILE_IMPORT_ID_KEY),
                 null,
-                Instant.ofEpochMilli(fileImportJson.getLong(PROJECT_FILE_IMPORT_CREATED_AT_TIMESTAMP_KEY))
+                Instant.ofEpochSecond(fileImportJson.getLong(PROJECT_FILE_IMPORT_CREATED_AT_TIMESTAMP_KEY))
         );
 
         return new File(

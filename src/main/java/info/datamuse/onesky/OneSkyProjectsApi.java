@@ -304,7 +304,7 @@ public final class OneSkyProjectsApi extends AbstractOneSkyApi {
                         .trim()
                         .replace("%", "")),
                 projectLanguageJson.isNull(PROJECT_LANGUAGE_UPDATED_AT_TIMESTAMP_KEY)
-                        ? null : Instant.ofEpochMilli(Long.valueOf(projectLanguageJson.getLong(PROJECT_LANGUAGE_UPDATED_AT_TIMESTAMP_KEY)))
+                        ? null : Instant.ofEpochSecond(Long.valueOf(projectLanguageJson.getLong(PROJECT_LANGUAGE_UPDATED_AT_TIMESTAMP_KEY)))
         );
     }
 
