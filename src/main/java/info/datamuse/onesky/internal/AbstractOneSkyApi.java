@@ -55,6 +55,7 @@ public abstract class AbstractOneSkyApi {
     private final HttpClient httpClient;
 
     private static final Map<String, String> JSON_CONTENT_TYPE_HEADER = Map.of(CONTENT_TYPE_HEADER, "application/json");
+    private static final HttpResponse.BodyHandler<String> stringResponseBodyHandler = HttpResponse.BodyHandlers.ofString();
 
     /**
      * Protected constructor.
@@ -168,7 +169,7 @@ public abstract class AbstractOneSkyApi {
             final String apiUrl,
             final Map<String, String> parameters
     ) {
-        return apiRequest(HTTP_PUT, noBody(), apiUrl, JSON_CONTENT_TYPE_HEADER, parameters, HTTP_STATUS_OK)
+        return apiRequest(HTTP_PUT, noBody(), stringResponseBodyHandler, apiUrl, JSON_CONTENT_TYPE_HEADER, parameters, HTTP_STATUS_OK)
                         .thenApply(responseJson -> null);
     }
 
@@ -177,7 +178,7 @@ public abstract class AbstractOneSkyApi {
         final Map<String, String> parameters
     ) {
         return
-            apiRequest(HTTP_DELETE, noBody(), apiUrl, JSON_CONTENT_TYPE_HEADER, parameters, HTTP_STATUS_OK)
+            apiRequest(HTTP_DELETE, noBody(), stringResponseBodyHandler, apiUrl, JSON_CONTENT_TYPE_HEADER, parameters, HTTP_STATUS_OK)
                 .thenApply(responseJson -> null);
     }
 
@@ -241,7 +242,7 @@ public abstract class AbstractOneSkyApi {
         final int expectedStatus
     ) {
         return
-            apiRequest(httpMethod, httpRequestBodyPublisher, apiUrl, headers, parameters, expectedStatus)
+            apiRequest(httpMethod, httpRequestBodyPublisher, HttpResponse.BodyHandlers.ofString(), apiUrl, headers, parameters, expectedStatus)
                 .thenApply(httpResponseBody -> {
                     try {
                         final JSONObject responseJson = new JSONObject(httpResponseBody);
@@ -253,9 +254,10 @@ public abstract class AbstractOneSkyApi {
                 });
     }
 
-    protected final CompletableFuture<String> apiRequest(
+    protected final <T> CompletableFuture<T> apiRequest(
         final String httpMethod,
         final HttpRequest.BodyPublisher httpRequestBodyPublisher,
+        final HttpResponse.BodyHandler<T> httpResponseBodyHandler,
         final String apiUrl,
         final Map<String, String> headers,
         final Map<String, String> parameters,
@@ -279,7 +281,7 @@ public abstract class AbstractOneSkyApi {
                 .build();
         return
             httpClient
-                .sendAsync(apiHttpRequest, HttpResponse.BodyHandlers.ofString())
+                .sendAsync(apiHttpRequest, httpResponseBodyHandler)
                 .thenApply(httpResponse -> {
                     final int httpStatus = httpResponse.statusCode();
                     if (httpStatus != expectedStatus) {

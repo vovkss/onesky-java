@@ -2,11 +2,15 @@ package info.datamuse.onesky;
 
 import org.junit.jupiter.api.Test;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.List;
 import java.util.Locale;
+import java.util.stream.Collectors;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
@@ -81,6 +85,11 @@ public class OneSkyFilesApiTest extends AbstractOneSkyApiTest {
         assertThat(projectFileItem.getCountOfStrings(), is(notNullValue()));
         assertThat(projectFileItem.getImportStatus(), is(notNullValue()));
         assertThat(projectFileItem.getImportStatus().getStatus(), is(notNullValue()));
+
+        // Translations
+        final var translationStream = oneSkyClient.translations().export(project.getId(), Locale.GERMAN, fileName).join();
+        System.out.println(new BufferedReader(new InputStreamReader(translationStream)).lines().collect(Collectors.joining("\n")));
+        System.out.println(new BufferedReader(new InputStreamReader(Files.newInputStream(path))).lines().collect(Collectors.joining("\n")));
 
         // Delete
         oneSkyClient.files().delete(project.getId(), fileName).join();
