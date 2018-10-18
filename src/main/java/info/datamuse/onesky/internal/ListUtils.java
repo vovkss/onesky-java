@@ -1,7 +1,9 @@
 package info.datamuse.onesky.internal;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import static java.util.Objects.requireNonNull;
@@ -37,6 +39,15 @@ public final class ListUtils {
     public static @Nullable <T> List<T> optionalListRequireNonNullItems(final @Nullable List<T> list) {
         if (list != null) {
             list.forEach(Objects::requireNonNull);
+        }
+        return list;
+    }
+
+    public static <T> List<T> listFromMapEntries(final Map<T, T> map) {
+        final List<T> list = new ArrayList<>();
+        for (Map.Entry<T, T> entry : map.entrySet()) {
+            list.add(entry.getKey());
+            list.add(entry.getValue());
         }
         return list;
     }
