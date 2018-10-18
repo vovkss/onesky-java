@@ -12,9 +12,10 @@
   <description>
     Java wrapper for OneSky API.
   </description>
+  <url>https://github.com/vovkss/onesky-java</url>
 
   <organization>
-    <name>Datamuse</name>
+    <name>DataMuse</name>
     <url>https://www.datamuse.info</url>
   </organization>
 
@@ -34,6 +35,14 @@
     <system>travis</system>
     <url>https://travis-ci.org/vovkss/onesky-java/</url>
   </ciManagement>
+
+  <licenses>
+    <license>
+      <name>MIT License</name>
+      <url>https://raw.githubusercontent.com/vovkss/onesky-java/master/LICENSE.md</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
 
   <!-- Properties -->
   <properties>
