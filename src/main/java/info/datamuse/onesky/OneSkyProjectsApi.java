@@ -44,14 +44,14 @@ public final class OneSkyProjectsApi extends AbstractOneSkyApi {
         private final List<ProjectLanguage> languages;
 
         public Project(
-                final long id,
-                final String name,
-                final @Nullable String description,
-                final @Nullable ProjectType projectType,
-                final @Nullable Integer countOfStrings,
-                final @Nullable Integer countOfWords,
-                final @Nullable ProjectLanguage baseLanguage,
-                final List<ProjectLanguage> languages) {
+            final long id,
+            final String name,
+            final @Nullable String description,
+            final @Nullable ProjectType projectType,
+            final @Nullable Integer countOfStrings,
+            final @Nullable Integer countOfWords,
+            final @Nullable ProjectLanguage baseLanguage,
+            final List<ProjectLanguage> languages) {
             this.id = id;
             this.name = name;
             this.description = description;
@@ -105,11 +105,11 @@ public final class OneSkyProjectsApi extends AbstractOneSkyApi {
             if (!(o instanceof Project)) return false;
             final Project project = (Project) o;
             return id == project.id &&
-                    Objects.equals(name, project.name) &&
-                    Objects.equals(description, project.description) &&
-                    Objects.equals(projectType, project.projectType) &&
-                    Objects.equals(countOfStrings, project.countOfStrings) &&
-                    Objects.equals(countOfWords, project.countOfWords);
+                Objects.equals(name, project.name) &&
+                Objects.equals(description, project.description) &&
+                Objects.equals(projectType, project.projectType) &&
+                Objects.equals(countOfStrings, project.countOfStrings) &&
+                Objects.equals(countOfWords, project.countOfWords);
         }
 
         @Override
@@ -120,15 +120,15 @@ public final class OneSkyProjectsApi extends AbstractOneSkyApi {
         @Override
         public String toString() {
             return "Project{" +
-                    "id=" + id +
-                    ", name='" + name + '\'' +
-                    ", description='" + description + '\'' +
-                    ", projectType=" + projectType +
-                    ", countOfStrings=" + countOfStrings +
-                    ", countOfWords=" + countOfWords +
-                    ", baseLanguage=" + baseLanguage +
-                    ", languages=" + languages +
-                    '}';
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                ", projectType=" + projectType +
+                ", countOfStrings=" + countOfStrings +
+                ", countOfWords=" + countOfWords +
+                ", baseLanguage=" + baseLanguage +
+                ", languages=" + languages +
+                '}';
         }
     }
 
@@ -172,11 +172,11 @@ public final class OneSkyProjectsApi extends AbstractOneSkyApi {
         @Override
         public String toString() {
             return "ProjectLanguage{" +
-                    "locale=" + locale +
-                    ", isReadyToPublish=" + isReadyToPublish +
-                    ", translationProgress=" + translationProgress +
-                    ", updatedAt=" + updatedAt +
-                    '}';
+                "locale=" + locale +
+                ", isReadyToPublish=" + isReadyToPublish +
+                ", translationProgress=" + translationProgress +
+                ", updatedAt=" + updatedAt +
+                '}';
         }
     }
 
@@ -216,33 +216,33 @@ public final class OneSkyProjectsApi extends AbstractOneSkyApi {
         }
 
         return apiCreateRequest(
-                String.format(Locale.ROOT, PROJECTS_BY_GROUP_ID_API_URL_TEMPLATE, projectGroupId),
-                parameters,
-                data -> toProject(data, null)
+            String.format(Locale.ROOT, PROJECTS_BY_GROUP_ID_API_URL_TEMPLATE, projectGroupId),
+            parameters,
+            data -> toProject(data, null)
         );
     }
 
     public CompletableFuture<List<Project>> list(final long projectGroupId) {
         return apiGetListRequest(
-                String.format(Locale.ROOT, PROJECTS_BY_GROUP_ID_API_URL_TEMPLATE, projectGroupId),
-                emptyMap(),
-                data -> toProject(data, null)
+            String.format(Locale.ROOT, PROJECTS_BY_GROUP_ID_API_URL_TEMPLATE, projectGroupId),
+            emptyMap(),
+            data -> toProject(data, null)
         );
     }
 
     public CompletableFuture<Project> retrieve(final long projectId) {
         final CompletableFuture<JSONObject> projectJsonPromise = apiGetObjectRequest(
-                String.format(Locale.ROOT, PROJECTS_BY_ID_API_URL_TEMPLATE, projectId),
-                emptyMap(),
-                identity()
+            String.format(Locale.ROOT, PROJECTS_BY_ID_API_URL_TEMPLATE, projectId),
+            emptyMap(),
+            identity()
         );
         final CompletableFuture<List<JSONObject>> projectLanguagesPromise = apiGetListRequest(
-                String.format(Locale.ROOT, PROJECT_LANGUAGES_BY_ID_API_URL_TEMPLATE, projectId),
-                emptyMap(),
-                identity()
+            String.format(Locale.ROOT, PROJECT_LANGUAGES_BY_ID_API_URL_TEMPLATE, projectId),
+            emptyMap(),
+            identity()
         );
         return projectJsonPromise.thenCombine(projectLanguagesPromise,
-                (projectJson, projectLanguagesJson) -> toProject(projectJson, projectLanguagesJson));
+            (projectJson, projectLanguagesJson) -> toProject(projectJson, projectLanguagesJson));
     }
 
     public CompletableFuture<Void> update(final long projectId, final @Nullable String name, final @Nullable String description) {
@@ -254,15 +254,15 @@ public final class OneSkyProjectsApi extends AbstractOneSkyApi {
             parameters.put(PROJECT_DESCRIPTION_PARAM, description);
         }
         return apiUpdateRequest(
-                String.format(Locale.ROOT, PROJECTS_BY_ID_API_URL_TEMPLATE, projectId),
-                parameters
+            String.format(Locale.ROOT, PROJECTS_BY_ID_API_URL_TEMPLATE, projectId),
+            parameters
         );
     }
 
     public CompletableFuture<Void> delete(final long projectId) {
         return apiDeleteRequest(
-                String.format(Locale.ROOT, PROJECTS_BY_ID_API_URL_TEMPLATE, projectId),
-                emptyMap()
+            String.format(Locale.ROOT, PROJECTS_BY_ID_API_URL_TEMPLATE, projectId),
+            emptyMap()
         );
     }
 
@@ -271,40 +271,40 @@ public final class OneSkyProjectsApi extends AbstractOneSkyApi {
         List<ProjectLanguage> projectLanguages = new ArrayList<>();
         if (languages != null) {
             baseProjectLanguage = languages.stream()
-                    .filter(langJson -> langJson.getBoolean(PROJECT_LANGUAGE_IS_BASE_LOCALE_KEY))
-                    .findFirst()
-                    .map(OneSkyProjectsApi::toProjectLanguage)
-                    .orElse(null);
+                .filter(langJson -> langJson.getBoolean(PROJECT_LANGUAGE_IS_BASE_LOCALE_KEY))
+                .findFirst()
+                .map(OneSkyProjectsApi::toProjectLanguage)
+                .orElse(null);
             projectLanguages = languages.stream()
-                    .map(OneSkyProjectsApi::toProjectLanguage)
-                    .collect(Collectors.toUnmodifiableList());
+                .map(OneSkyProjectsApi::toProjectLanguage)
+                .collect(Collectors.toUnmodifiableList());
         }
 
         @Nullable ProjectType projectType = getOptionalJsonValue(projectJson, PROJECT_PROJECT_TYPE_KEY, JSONObject.class, jsonProjectType -> new ProjectType(
-                jsonProjectType.getString(PROJECT_TYPE_CODE_KEY),
-                jsonProjectType.getString(PROJECT_TYPE_NAME_KEY)));
+            jsonProjectType.getString(PROJECT_TYPE_CODE_KEY),
+            jsonProjectType.getString(PROJECT_TYPE_NAME_KEY)));
 
         return new Project(
-                projectJson.getLong(PROJECT_ID_KEY),
-                projectJson.getString(PROJECT_NAME_KEY),
-                getOptionalJsonValue(projectJson, PROJECT_DESCRIPTION_KEY, String.class, identity()),
-                projectType,
-                getOptionalJsonValue(projectJson, PROJECT_STRING_COUNT_KEY, Integer.class, identity()),
-                getOptionalJsonValue(projectJson, PROJECT_WORD_COUNT_KEY, Integer.class, identity()),
-                baseProjectLanguage,
-                projectLanguages
+            projectJson.getLong(PROJECT_ID_KEY),
+            projectJson.getString(PROJECT_NAME_KEY),
+            getOptionalJsonValue(projectJson, PROJECT_DESCRIPTION_KEY, String.class, identity()),
+            projectType,
+            getOptionalJsonValue(projectJson, PROJECT_STRING_COUNT_KEY, Integer.class, identity()),
+            getOptionalJsonValue(projectJson, PROJECT_WORD_COUNT_KEY, Integer.class, identity()),
+            baseProjectLanguage,
+            projectLanguages
         );
     }
 
     private static ProjectLanguage toProjectLanguage(final JSONObject projectLanguageJson) {
         return new ProjectLanguage(
-                Locale.forLanguageTag(projectLanguageJson.getString(LOCALE_CODE_KEY)),
-                projectLanguageJson.getBoolean(PROJECT_LANGUAGE_IS_READY_TO_PUBLISH_KEY),
-                Short.valueOf(projectLanguageJson.getString(PROJECT_LANGUAGE_TRANSLATION_PROGRESS_KEY)
-                        .trim()
-                        .replace("%", "")),
-                projectLanguageJson.isNull(PROJECT_LANGUAGE_UPDATED_AT_TIMESTAMP_KEY)
-                        ? null : Instant.ofEpochSecond(Long.valueOf(projectLanguageJson.getLong(PROJECT_LANGUAGE_UPDATED_AT_TIMESTAMP_KEY)))
+            Locale.forLanguageTag(projectLanguageJson.getString(LOCALE_CODE_KEY)),
+            projectLanguageJson.getBoolean(PROJECT_LANGUAGE_IS_READY_TO_PUBLISH_KEY),
+            Short.valueOf(projectLanguageJson.getString(PROJECT_LANGUAGE_TRANSLATION_PROGRESS_KEY)
+                .trim()
+                .replace("%", "")),
+            projectLanguageJson.isNull(PROJECT_LANGUAGE_UPDATED_AT_TIMESTAMP_KEY)
+                ? null : Instant.ofEpochSecond(Long.valueOf(projectLanguageJson.getLong(PROJECT_LANGUAGE_UPDATED_AT_TIMESTAMP_KEY)))
         );
     }
 

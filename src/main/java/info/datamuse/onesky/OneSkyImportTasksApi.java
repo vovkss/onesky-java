@@ -114,6 +114,29 @@ public final class OneSkyImportTasksApi extends AbstractOneSkyApi {
     private static final String PROJECT_IMPORT_TASKS_ID_API_URL_TEMPLATE = PROJECTS_BY_ID_API_URL_TEMPLATE + "/import-tasks";
     private static final String PROJECT_IMPORT_TASKS_IMPORT_ID_API_URL_TEMPLATE = PROJECT_IMPORT_TASKS_ID_API_URL_TEMPLATE + "/%d";
 
+    /**
+     * Import task status.
+     */
+    public enum ImportTaskStatus {
+        /**
+         * Completed task status.
+         */
+        COMPLETED,
+
+        /**
+         * Task in progress status.
+         */
+        IN_PROGRESS,
+
+        /**
+         * Failed task status.
+         */
+        FAILED
+    }
+
+    public static class ImportTask {
+    }
+
     OneSkyImportTasksApi(final String apiKey, final String apiSecret, final HttpClient httpClient) {
         super(apiKey, apiSecret, httpClient);
     }
