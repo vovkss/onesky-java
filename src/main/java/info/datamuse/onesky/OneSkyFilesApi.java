@@ -25,11 +25,13 @@ import static java.util.Objects.requireNonNull;
 public final class OneSkyFilesApi extends AbstractOneSkyApi {
 
     public enum FileStatus {
+        ALL,
         COMPLETED,
         IN_PROGRESS,
         FAILED;
 
         private static Map<String, FileStatus> statusMap = Map.of(
+                "all", ALL,
                 "completed", COMPLETED,
                 "in-progress", IN_PROGRESS,
                 "failed", FAILED
@@ -37,6 +39,14 @@ public final class OneSkyFilesApi extends AbstractOneSkyApi {
 
         static FileStatus forValue(final String value) {
             return statusMap.get(value.toLowerCase());
+        }
+        static @Nullable String getValue(final FileStatus fileStatus) {
+            for (String key : statusMap.keySet()) {
+                if (statusMap.get(key).equals(fileStatus)) {
+                    return key;
+                }
+            }
+            return null;
         }
     }
 
@@ -75,18 +85,21 @@ public final class OneSkyFilesApi extends AbstractOneSkyApi {
     public static final class File {
         private final String name;
         private final @Nullable Integer countOfStrings;
+        private final @Nullable Integer countOfWords;
         private final @Nullable FileImport importStatus;
         private final @Nullable FileFormat format;
         private final @Nullable Locale locale;
 
         File(final String name,
              final @Nullable Integer countOfStrings,
+             final @Nullable Integer countOfWords,
              final @Nullable FileImport importStatus,
              final @Nullable FileFormat format,
              final @Nullable Locale locale) {
 
             this.name = requireNonNull(name);
             this.countOfStrings = countOfStrings;
+            this.countOfWords = countOfWords;
             this.importStatus = importStatus;
             this.format = format;
             this.locale = locale;
@@ -99,6 +112,11 @@ public final class OneSkyFilesApi extends AbstractOneSkyApi {
         @Nullable
         public Integer getCountOfStrings() {
             return countOfStrings;
+        }
+
+        @Nullable
+        public Integer getCountOfWords() {
+            return countOfWords;
         }
 
         @Nullable
@@ -177,26 +195,27 @@ public final class OneSkyFilesApi extends AbstractOneSkyApi {
         }
     }
 
-    private static final String PROJECT_FILE_NAME_KEY = "name";
+    static final String PROJECT_FILE_NAME_KEY = "name";
     private static final String PROJECT_FILE_FILE_NAME_KEY = "file_name";
-    private static final String PROJECT_FILE_STRING_COUNT_KEY = "string_count";
+    static final String PROJECT_FILE_STRING_COUNT_KEY = "string_count";
+    static final String PROJECT_FILE_WORD_COUNT_KEY = "word_count";
     private static final String PROJECT_FILE_LAST_IMPORT_KEY = "last_import";
     private static final String PROJECT_FILE_UPLOADED_AT_TIMESTAMP_KEY = "uploaded_at_timestamp";
 
-    private static final String PROJECT_FILE_UPLOAD_FILE_PARAM = "file";
+    static final String PROJECT_FILE_UPLOAD_FILE_PARAM = "file";
     private static final String PROJECT_FILE_UPLOAD_FILE_FORMAT_PARAM = "file_format";
-    private static final String PROJECT_FILE_UPLOAD_LOCALE_PARAM = "locale";
+    static final String PROJECT_FILE_UPLOAD_LOCALE_PARAM = "locale";
     private static final String PROJECT_FILE_UPLOAD_KEEP_ALL_STRINGS_PARAM = "is_keeping_all_strings";
     private static final String PROJECT_FILE_UPLOAD_ALLOW_ORIGINAL_TRANSLATION_PARAM = "is_allow_translation_same_as_original";
 
-    private static final String PROJECT_FILE_FORMAT_KEY = "format";
+    static final String PROJECT_FILE_FORMAT_KEY = "format";
     private static final String PROJECT_FILE_LANGUAGE_KEY = "language";
-    private static final String PROJECT_FILE_LANGUAGE_CODE_KEY = "code";
+    static final String PROJECT_FILE_LANGUAGE_CODE_KEY = "code";
     private static final String PROJECT_FILE_IMPORT_KEY = "import";
 
-    private static final String PROJECT_FILE_IMPORT_ID_KEY = "id";
-    private static final String PROJECT_FILE_IMPORT_STATUS_KEY = "status";
-    private static final String PROJECT_FILE_IMPORT_CREATED_AT_TIMESTAMP_KEY = "created_at_timestamp";
+    static final String PROJECT_FILE_IMPORT_ID_KEY = "id";
+    static final String PROJECT_FILE_IMPORT_STATUS_KEY = "status";
+    static final String PROJECT_FILE_IMPORT_CREATED_AT_TIMESTAMP_KEY = "created_at_timestamp";
 
     private static final String PROJECT_FILES_ID_API_URL_TEMPLATE = PROJECTS_BY_ID_API_URL_TEMPLATE + "/files";
 
@@ -284,6 +303,7 @@ public final class OneSkyFilesApi extends AbstractOneSkyApi {
         return new File(
                 fileJson.getString(PROJECT_FILE_FILE_NAME_KEY),
                 fileJson.getInt(PROJECT_FILE_STRING_COUNT_KEY),
+                null,
                 fileImport,
                 null,
                 null
@@ -303,6 +323,7 @@ public final class OneSkyFilesApi extends AbstractOneSkyApi {
 
         return new File(
                 fileJson.getString(PROJECT_FILE_NAME_KEY),
+                null,
                 null,
                 fileImport,
                 Enum.valueOf(FileFormat.class, fileJson.getString(PROJECT_FILE_FORMAT_KEY)),
