@@ -5,7 +5,7 @@
   <!-- Identification -->
   <groupId>info.datamuse</groupId>
   <artifactId>onesky-java</artifactId>
-  <version>1.0.0-SNAPSHOT</version>
+  <version>1.0.0-alpha</version>
 
   <!-- Metainfo -->
   <name>OneSky Java API Library</name>
@@ -43,6 +43,17 @@
       <distribution>repo</distribution>
     </license>
   </licenses>
+
+  <distributionManagement>
+      <repository>
+          <id>oss.sonatype.org</id>
+          <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+      <snapshotRepository>
+          <id>oss.sonatype.org</id>
+          <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+      </snapshotRepository>
+  </distributionManagement>
 
   <!-- Properties -->
   <properties>
