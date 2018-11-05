@@ -134,9 +134,6 @@ public final class OneSkyImportTasksApi extends AbstractOneSkyApi {
         FAILED
     }
 
-    public static class ImportTask {
-    }
-
     OneSkyImportTasksApi(final String apiKey, final String apiSecret, final HttpClient httpClient) {
         super(apiKey, apiSecret, httpClient);
     }
