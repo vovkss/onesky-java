@@ -20,7 +20,7 @@ For example, Apache Maven dependency would be:
     <dependency>
       <groupId>info.datamuse</groupId>
       <artifactId>onesky-java</artifactId>
-      <version>1.0.0</version>
+      <version>1.0.0-alpha</version>
     </dependency>
 
 
