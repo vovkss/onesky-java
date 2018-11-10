@@ -5,7 +5,7 @@
   <!-- Identification -->
   <groupId>info.datamuse</groupId>
   <artifactId>onesky-java</artifactId>
-  <version>1.0.0-SNAPSHOT</version>
+  <version>1.0.0-alpha</version>
 
   <!-- Metainfo -->
   <name>OneSky Java API Library</name>
@@ -43,6 +43,46 @@
       <distribution>repo</distribution>
     </license>
   </licenses>
+
+    <developers>
+        <developer>
+            <id>alex_shesterov</id>
+            <name>Alex Shesterov</name>
+            <email>alex.shesterov@gmail.com</email>
+            <url>https://www.facebook.com/alex.shesterov</url>
+            <organization>Datamuse</organization>
+            <organizationUrl>https://www.datamuse.info</organizationUrl>
+            <roles>
+                <role>developer</role>
+                <role>architect</role>
+            </roles>
+            <timezone>Europe/Berlin</timezone>
+        </developer>
+        <developer>
+            <id>vladislav_dvoretskyi</id>
+            <name>Vladyslav Dvoretskyi</name>
+            <email>jasper.ua@gmail.com</email>
+            <url>https://www.facebook.com/vladislav.dvoretsky</url>
+            <organization>Datamuse</organization>
+            <organizationUrl>https://www.datamuse.info</organizationUrl>
+            <roles>
+                <role>developer</role>
+                <role>architect</role>
+            </roles>
+            <timezone>Europe/Kiev</timezone>
+        </developer>
+    </developers>
+
+  <distributionManagement>
+      <repository>
+          <id>oss.sonatype.org</id>
+          <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+      <snapshotRepository>
+          <id>oss.sonatype.org</id>
+          <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+      </snapshotRepository>
+  </distributionManagement>
 
   <!-- Properties -->
   <properties>
@@ -82,6 +122,10 @@
     <maven.sitePlugin.version>3.7.1</maven.sitePlugin.version>
     <maven.installPlugin.version>2.5.2</maven.installPlugin.version>
     <maven.deployPlugin.version>2.8.2</maven.deployPlugin.version>
+    <maven.gpgPlugin.version>1.6</maven.gpgPlugin.version>
+    <maven.sourcePlugin.version>3.0.1</maven.sourcePlugin.version>
+    <maven.javadocPlugin.version>3.0.1</maven.javadocPlugin.version>
+    <maven.nexusStagingPlugin>1.6.8</maven.nexusStagingPlugin>
   </properties>
 
   <!-- Dependency management -->
@@ -382,5 +426,83 @@
       </plugin>
     </plugins>
   </build>
+
+  <profiles>
+    <profile>
+      <id>release</id>
+      <activation>
+        <property>
+          <name>release</name>
+        </property>
+      </activation>
+
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-source-plugin</artifactId>
+            <version>${maven.sourcePlugin.version}</version>
+            <executions>
+              <execution>
+                <id>package-sources</id>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <!-- To generate javadoc -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <version>${maven.javadocPlugin.version}</version>
+            <executions>
+              <execution>
+                <id>package-javadoc</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>${maven.gpgPlugin.version}</version>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.sonatype.plugins</groupId>
+            <artifactId>nexus-staging-maven-plugin</artifactId>
+            <version>${maven.nexusStagingPlugin}</version>
+            <extensions>true</extensions>
+            <configuration>
+              <serverId>oss.sonatype.org</serverId>
+              <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+            </configuration>
+            <executions>
+              <execution>
+                <id>deploy-to-sonatype</id>
+                <phase>deploy</phase>
+                <goals>
+                  <goal>deploy</goal>
+                  <goal>release</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 
 </project>
